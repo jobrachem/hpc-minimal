@@ -9,6 +9,11 @@
 #SBATCH --array=1-5%2
 #SBATCH --output=slurm-%A_%a.out
 
+# To enable email, replace the address and remove the first '# ' from both lines.
+# #SBATCH --mail-user=YOUR_EMAIL@example.com
+# #SBATCH --mail-type=BEGIN,END,FAIL
+# Notifications cover the whole array; add ARRAY_TASKS for per-task updates.
+
 set -euo pipefail
 cd "$SLURM_SUBMIT_DIR"
 

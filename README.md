@@ -222,6 +222,8 @@ Follow your language's submission section to review `submit.sh`, upload any edit
 - **R:** [Submit an R job](r/README.md#submit-an-r-job-as-a-job-array), through **Submit one task first**.
 - **Python:** [Submit the notebook as a job array](py/README.md#submit-the-notebook-as-a-job-array), through **Submit one task first**.
 
+For email updates, both `submit.sh` scripts include optional `--mail-user` and `--mail-type` settings. Enter your email address and uncomment those two directives before submitting to receive notifications when the array starts, ends, or fails.
+
 Record the job ID printed by `sbatch`, then return to **step 7** below. Wait for that test job to succeed before submitting the full array.
 
 ## 7. Check the test job and run the full array
