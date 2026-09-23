@@ -1,14 +1,23 @@
 # ..............................................................................
-# ---- Read command line arguments ----
+# ---- Set parameters ----
 # ..............................................................................
 
-args <- commandArgs(trailingOnly = TRUE)
-if (length(args) != 2L) {
-  stop("Usage: Rscript run.R TASK_ID OUTPUT_DIR")
+if (interactive()) {
+  # Edit these when sourcing the script or running it section by section.
+  task_id <- 1
+  output_dir <- "results/local-test"
+} else {
+  args <- commandArgs(trailingOnly = TRUE)
+  if (length(args) != 2L) {
+    stop("Usage: Rscript run.R TASK_ID OUTPUT_DIR")
+  }
+  task_id <- as.numeric(args[1])
+  output_dir <- args[2]
 }
 
-task_id <- as.numeric(args[1])
-output_dir <- args[2]
+if (length(task_id) != 1L || is.na(task_id) || !task_id %in% 1:5) {
+  stop("TASK_ID must be an integer from 1 to 5")
+}
 
 # ..............................................................................
 # ---- Create output directory and check output file existence ----

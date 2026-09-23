@@ -284,6 +284,21 @@ A **job array** runs the same script several times, giving each run a different 
 
 The script uses only base R, so you do not need to install the example packages from the previous section. Each task uses its number as a random seed, making repeat runs reproducible with the same R environment. This is deliberately a tiny teaching example; for a real study, give each task enough work to justify the scheduling overhead.
 
+### Try the script in your local R console
+
+In **R on your own computer**, set the working directory to the local `job-001` folder and source the script:
+
+```r
+setwd("C:/path/to/minimal-hpc-r/job-001")
+source("run.R")
+stopifnot(nrow(results) == 1000L)
+head(results)
+```
+
+You can also run the script section by section in your editor. Its first block detects an interactive R session and sets `task_id <- 1` and `output_dir <- "results/local-test"`. Edit those defaults to try another task or output folder. The resulting `results` data frame stays in your R session for inspection, and a copy is saved to disk.
+
+The script refuses to overwrite an existing result, so choose a fresh output folder when repeating a task. Under `Rscript` or Slurm, the script reads the task number and output folder from command-line arguments instead.
+
 ### Check the submission script
 
 Open [`job-001/submit.sh`](job-001/submit.sh) in your **local editor**. Lines beginning with `#SBATCH` tell Slurm what to request:
