@@ -92,3 +92,70 @@ cd ~/minimal-hpc-r
 Linux paths use `/`, and names are case-sensitive: `run.R` and `run.r` are different files. Tab completes names; the up arrow recalls previous commands. Save shell scripts (`.sh`) with **LF / Unix line endings** in your editor so they run correctly on Linux.
 
 The machine you log into is a shared **login node**, used to prepare files and submit work. Run simulations as jobs through **Slurm**, the scheduler that assigns work to compute nodes. A submitted batch job continues after you disconnect. The [cluster overview](https://docs.hpc.gwdg.de/start_here/using_the_cluster/index.html) explains this division; the following sections cover the R environment, file transfers, and job submission.
+
+## Set up your R environment on the server
+
+GWDG provides ready-to-use R installations through **modules**. Loading a module makes a particular software version available in your terminal. Your Windows R installation and its packages are separate from the cluster installation.
+
+Run all commands in this section **in the connected SSH terminal on the cluster**, unless marked as R commands.
+
+### Choose and load an R version
+
+First, find the available R versions:
+
+```bash
+module spider r
+```
+
+For details about one version, include its version number:
+
+```bash
+module spider r/4.5.2
+```
+
+The output tells you which other modules must be loaded first. R may require a **compiler**, which is also used to build some R packages when you install them later.
+
+For example, the [GWDG R documentation](https://docs.hpc.gwdg.de/software_stacks/compilers_interpreters/r/index.html) currently lists R 4.5.2 with GCC 14.2.0 for Emmy CPU nodes. On the Emmy Phase 3 login used above, load them in this order:
+
+```bash
+module load gcc/14.2.0
+module load r/4.5.2
+```
+
+If that version is unavailable, choose one listed by `module spider r` and follow its prerequisite instructions. Keep the exact compiler and R module names you use: you will need the same pair for package installation and job submission.
+
+### Check that R works
+
+Still in the **SSH terminal**, run:
+
+```bash
+module list
+Rscript --version
+Rscript -e 'sessionInfo()'
+```
+
+`module list` shows the loaded modules. `Rscript --version` should report the R version you selected. The last command starts R, prints details about its version, platform, and loaded packages, then exits automatically. These small checks should finish within seconds.
+
+[`Rscript`](https://stat.ethz.ch/R-manual/R-devel/library/utils/html/Rscript.html) runs R code without an interactive console; `-e` supplies the code directly. Later, your batch script will use it to run an `.R` file. The module name is lowercase `r`, but the programs are named `R` and `Rscript`.
+
+For a brief interactive check, start R from the SSH terminal:
+
+```bash
+R --no-save --no-restore
+```
+
+When the `>` prompt appears, you are **inside R**. Try these R commands:
+
+```r
+1 + 1
+q(save = "no")
+```
+
+You should see `[1] 2`; `q()` then returns you to the Linux terminal. Use compute jobs for simulations, as described above.
+
+### Reuse the same setup
+
+Load the same compiler and R modules each time you open a new SSH session. We will also put those two `module load` lines in the submission script so each job selects its R environment explicitly. Specifying versions keeps the choice stable if the cluster's defaults change. GWDG recommends loading modules in your session or batch script, rather than automatically in `.bashrc`; see [Module Basics](https://docs.hpc.gwdg.de/software_stacks/module_basics/index.html).
+
+R is now available on the server. After uploading the project files, we will install any additional R packages there.
+
