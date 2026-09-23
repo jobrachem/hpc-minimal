@@ -8,6 +8,7 @@
 
 # User-specific files
 .Ruserdata
+.vscode/settings.json
 
 # Example code in package build process
 *-Ex.R
@@ -49,5 +50,11 @@ po/*~
 rsconnect/
 
 # Generated simulation results and Slurm logs
-job-*/results/
-job-*/slurm-*.out
+**/job-*/results/
+**/job-*/slurm-*.out
+
+# Python environments and notebook working files
+.venv/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
