@@ -354,7 +354,7 @@ squeue --me --array
 squeue --array --jobs=123456
 ```
 
-In the `ST` column, `PD` means pending (waiting to start), `R` means running, and `CG` means completing. The `NODELIST(REASON)` column shows the compute node or why a task is waiting. `Resources` and `Priority` are normal waiting reasons; `JobArrayTaskLimit` means the array has reached its concurrency limit, which our script sets to two. Check again later rather than submitting another copy. See [Slurm's reason codes](https://slurm.schedmd.com/job_reason_codes.html).
+Depending on the cluster's output format, the state column is called `STATE` or `ST`. It shows `PENDING` (or `PD`) for tasks waiting to start, `RUNNING` (or `R`) for running tasks, and `COMPLETING` (or `CG`) while a task finishes up. Long labels may be truncated. The `NODELIST(REASON)` column shows the compute node or why a task is waiting. `Resources` and `Priority` are normal waiting reasons; `JobArrayTaskLimit` means the array has reached its concurrency limit, which our script sets to two. Check again later rather than submitting another copy. See [Slurm's reason codes](https://slurm.schedmd.com/job_reason_codes.html).
 
 ### Read a task's log
 
