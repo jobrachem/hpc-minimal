@@ -93,7 +93,7 @@ Linux paths use `/`, and names are case-sensitive: `run.R` and `run.r` are diffe
 
 The machine you log into is a shared **login node**, used to prepare files and submit work. Run simulations as jobs through **Slurm**, the scheduler that assigns work to compute nodes. A submitted batch job continues after you disconnect. The [cluster overview](https://docs.hpc.gwdg.de/start_here/using_the_cluster/index.html) explains this division; the following sections cover the R environment, file transfers, and job submission.
 
-## Set up your R environment on the server
+## Test your R environment on the server
 
 GWDG provides ready-to-use R installations through **modules**. Loading a module makes a particular software version available in your terminal. Your Windows R installation and its packages are separate from the cluster installation.
 
