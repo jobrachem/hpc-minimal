@@ -2,32 +2,43 @@
 
 This repository introduces running simulation studies on the GWDG High Performance Cluster. The instructions assume a Windows computer and PowerShell for SSH and file transfers.
 
-Start with the [shared setup](#set-up-your-basic-workflow), then follow your language guide:
+Follow the numbered steps below in order, choosing **R** or **Python** wherever the instructions branch. Keep this page open: each language-specific section tells you where to return. You only need to follow one language.
 
-- [R](r/README.md): a complete simulation example, from the local R console to a Slurm job array.
-- [Python](python/README.md): a Jupyter notebook simulation with uv and Slurm, including setup for Positron, VS Code, and JupyterLab, plus [environment discovery settings](python/README.md#keep-the-whole-repository-open).
-
-The shared instructions below cover [uploads](#upload-your-code-and-data-to-the-server), [job monitoring](#check-the-status-of-your-job), and [downloads](#download-the-data-saved-by-your-job). Each language guide links back to them when needed.
+The [R guide](r/README.md) and [Python guide](py/README.md) contain the language-specific details. The Python guide covers Positron, VS Code, JupyterLab, and environment discovery settings.
 
 ```text
 README.md              Shared cluster setup and commands
 r/README.md            R walkthrough
 r/job-001/             R simulation and submission script
-python/README.md       Python/Jupyter walkthrough
-python/job-001/        Notebook, submission script, and uv environment files
+py/README.md           Python/Jupyter walkthrough
+py/job-001/            Notebook, submission script, and uv environment files
 ```
 
-The repository folder remains named `minimal-hpc-r` in all commands. Keep the same layout on your computer and the cluster. Existing copies of the old top-level `job-001` belong under `r/job-001` now; do not move files used by queued or running jobs.
+## Table of contents
 
-## Related documentation
+- [1. Download the repository](#1-download-the-repository)
+- [2. Set up SSH and connect](#2-set-up-ssh-and-connect)
+- [3. Prepare and test locally](#3-prepare-and-test-locally)
+- [4. Upload your code and data](#4-upload-your-code-and-data)
+- [5. Prepare the cluster environment](#5-prepare-the-cluster-environment)
+- [6. Submit a test job](#6-submit-a-test-job)
+- [7. Check the test job and run the full array](#7-check-the-test-job-and-run-the-full-array)
+- [8. Download the results](#8-download-the-results)
+- [Related documentation](#related-documentation)
 
-- Official documentation: https://docs.hpc.gwdg.de/
-- Basic tutorials: https://github.com/jonaden94/hpc_guide
-- Opinionated experimentation workflow: https://github.com/jobrachem/hpc
-- Cheat sheet for Linux commands: https://github.com/RehanSaeed/Bash-Cheat-Sheet
+## 1. Download the repository
 
+Download a ZIP of [this repository](https://github.com/jobrachem/hpc-minimal) using **Code → Download ZIP**, then extract it on your computer. Rename the extracted folder to `minimal-hpc-r` to match the commands in this walkthrough. It should contain `README.md`, `r`, and `py` directly inside it.
 
-## Set up your basic workflow
+If you already use Git, you can clone it from **local PowerShell** instead:
+
+```powershell
+git clone https://github.com/jobrachem/hpc-minimal.git minimal-hpc-r
+```
+
+If you already have a local copy, use it. Replace `C:\path\to\minimal-hpc-r` in later commands with its actual location. We use `~/minimal-hpc-r` as the separate destination on the cluster. Keep the `r` and `py` subfolders in both copies.
+
+## 2. Set up SSH and connect
 
 You will work in two places: **on your Windows computer**, where you edit and test your code, and **on the cluster**, where you run larger simulations. Files are separate: after editing locally, you upload the changed files; after a simulation, you download the results.
 
@@ -98,15 +109,26 @@ cd ~/minimal-hpc-r
 
 Linux paths use `/`, and names are case-sensitive: `run.R` and `run.r` are different files. Tab completes names; the up arrow recalls previous commands. Save shell scripts (`.sh`) with **LF / Unix line endings** in your editor so they run correctly on Linux.
 
-The machine you log into is a shared **login node**, used to prepare files and submit work. Run simulations as jobs through **Slurm**, the scheduler that assigns work to compute nodes. A submitted batch job continues after you disconnect. The [cluster overview](https://docs.hpc.gwdg.de/start_here/using_the_cluster/index.html) explains this division. Continue with the [R guide](r/README.md) for a complete example. The [Python guide](python/README.md) covers Jupyter notebooks with uv.
+The machine you log into is a shared **login node**, used to prepare files and submit work. Run simulations as jobs through **Slurm**, the scheduler that assigns work to compute nodes. A submitted batch job continues after you disconnect. The [cluster overview](https://docs.hpc.gwdg.de/start_here/using_the_cluster/index.html) explains this division.
 
-## Upload your code and data to the server
+## 3. Prepare and test locally
 
-Use `scp` to copy files over SSH, using the same login details as before. Keep your **SSH terminal** open and open a second, **local PowerShell** window for uploads. The local window can access the files on your Windows computer.
+Keep the SSH terminal open. Open a second **local PowerShell** window for commands on your own computer; use your usual editor or notebook application for the code.
+
+Choose your language:
+
+- **R:** follow [Prepare and test locally](r/README.md#prepare-and-test-locally) through the local console example.
+- **Python:** follow [Prepare your local Python environment](py/README.md#prepare-your-local-python-environment) and [Try the notebook on your computer](py/README.md#try-the-notebook-on-your-computer), including the local parameter-passing check. Choose one editor; adding packages is optional.
+
+Save your code after the local run succeeds. Both guides return you to **step 4** below.
+
+## 4. Upload your code and data
+
+Use `scp` to copy files over SSH, using the same login details as before. Use the **local PowerShell** window you opened in step 3 for uploads; keep your **SSH terminal** open too. The local window can access the files on your Windows computer.
 
 > **Note:** This guide shows an easy way to get started, but manually copying files is error-prone and can quickly become cumbersome. I **highly recommend using a GitHub repository** to version your experiment code and synchronize it between your local computer and the server: commit and push your changes locally, then pull them on the server.
 
-Choose the R example in `r/job-001` or the Python example in `python/job-001` below. Both use the same source-and-destination pattern. Copy code and input files; recreate Python environments on the server instead of uploading `.venv`.
+Choose the R example in `r/job-001` or the Python example in `py/job-001` below. Both use the same source-and-destination pattern. Copy code and input files; recreate Python environments on the server instead of uploading `.venv`.
 
 ### Prepare the folders
 
@@ -116,7 +138,7 @@ In the **SSH terminal**, ensure the destination folder exists:
 # For R:
 mkdir -p ~/minimal-hpc-r/r/job-001
 # For Python:
-mkdir -p ~/minimal-hpc-r/python/job-001
+mkdir -p ~/minimal-hpc-r/py/job-001
 ```
 
 In **local PowerShell**, move into your local copy of this repository. Replace the example path with its location on your computer; if you downloaded a ZIP, extract it first.
@@ -126,7 +148,7 @@ cd "C:\path\to\minimal-hpc-r"
 Get-ChildItem
 ```
 
-You should see `README.md` and the `r` and `python` folders. Save any edits in your editor before uploading. If your simulation needs small input files, you can put them in a `data` folder inside your job folder and copy that folder separately.
+You should see `README.md` and the `r` and `py` folders. Save any edits in your editor before uploading. If your simulation needs small input files, you can put them in a `data` folder inside your job folder and copy that folder separately.
 
 This example uses your cluster home directory for a small project. Before uploading large datasets, choose suitable storage using the [GWDG storage guide](https://docs.hpc.gwdg.de/how_to_use/storage_systems/index.html). Run `show-quota` in the SSH terminal to see your storage locations and limits.
 
@@ -143,14 +165,14 @@ scp .\r\job-001\run.R .\r\job-001\submit.sh YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg
 **Python:**
 
 ```powershell
-scp .\python\job-001\run.ipynb .\python\job-001\submit.sh .\python\job-001\pyproject.toml .\python\job-001\uv.lock YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/python/job-001/
+scp .\py\job-001\run.ipynb .\py\job-001\submit.sh .\py\job-001\pyproject.toml .\py\job-001\uv.lock YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/py/job-001/
 ```
 
 Use the same hostname as for your SSH login. The local file paths come first: they are the sources. The server and remote folder come last: they are the destination. The colon separates the server from its path; this relative path starts in your remote home directory. Here, `.` means the current local directory.
 
 This copies the selected files into the matching job folder on the cluster. Enter your key's passphrase if requested and wait for the PowerShell prompt to return. Check for error messages before continuing. See [GWDG's transfer instructions](https://docs.hpc.gwdg.de/how_to_use/data_transfer/index.html) for more examples.
 
-If you added a `data` folder, copy it separately (replace `r` with `python` for Python) with `scp -r`, which copies a folder and its contents:
+If you added a `data` folder, copy it separately (replace `r` with `py` for Python) with `scp -r`, which copies a folder and its contents:
 
 ```powershell
 scp -r .\r\job-001\data YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/r/job-001/
@@ -168,7 +190,7 @@ ls -lh
 For Python:
 
 ```bash
-cd ~/minimal-hpc-r/python/job-001
+cd ~/minimal-hpc-r/py/job-001
 ls -lh
 ```
 
@@ -182,9 +204,27 @@ scp .\r\job-001\run.R YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/r/jo
 
 `scp` replaces files with the same destination name without asking. Upload only the files you intend to update, and keep files used by queued or running jobs unchanged until those jobs finish. Uploading copies files; it does not run your code.
 
-Return to your language guide after checking the uploaded files: [R](r/README.md#install-r-packages-on-the-server) or [Python](python/README.md#prepare-the-environment-on-scc).
+Continue with **step 5** below once the files are present.
 
-## Check the status of your job
+## 5. Prepare the cluster environment
+
+Switch to the **SSH terminal** and follow the section for your language:
+
+- **R:** [Test your R environment on the server](r/README.md#test-your-r-environment-on-the-server), then [Install R packages on the server](r/README.md#install-r-packages-on-the-server) if your code needs extra packages. This example uses only base R, so package installation is optional.
+- **Python:** [Prepare the environment on SCC](py/README.md#prepare-the-environment-on-scc).
+
+Wait for setup to finish successfully. Both guides return you to **step 6** below.
+
+## 6. Submit a test job
+
+Follow your language's submission section to review `submit.sh`, upload any edits, and submit **only task 1**:
+
+- **R:** [Submit an R job](r/README.md#submit-an-r-job-as-a-job-array), through **Submit one task first**.
+- **Python:** [Submit the notebook as a job array](py/README.md#submit-the-notebook-as-a-job-array), through **Submit one task first**.
+
+Record the job ID printed by `sbatch`, then return to **step 7** below. Wait for that test job to succeed before submitting the full array.
+
+## 7. Check the test job and run the full array
 
 Run these commands **in the SSH terminal on the cluster**. Replace `123456` with the job ID returned by `sbatch`; your single-task test and full array have different IDs.
 
@@ -206,7 +246,7 @@ Depending on the cluster's output format, the state column is called `STATE` or 
 
 ### Read a task's log
 
-In the job folder from which you submitted the job, inspect the last 20 lines of task 1's log:
+In the job folder from which you submitted the job (`~/minimal-hpc-r/r/job-001` or `~/minimal-hpc-r/py/job-001`), inspect the last 20 lines of task 1's log:
 
 ```bash
 tail -n 20 slurm-123456_1.out
@@ -240,6 +280,14 @@ Also check the expected output files listed in your language guide. For a submis
 ls -lh results/123456/
 ```
 
+### Continue after a successful run
+
+For the **single-task test**, expect `task-001.rds` for R or `task-001.csv` for Python, containing 1,000 rows. The Slurm log should report a successful run. If you enabled executed Python notebooks, expect `task-001.ipynb` too.
+
+Once task 1 is `COMPLETED` with exit code `0:0` and its output is correct, follow **Submit the full array** in the [R guide](r/README.md#submit-the-full-array) or [Python guide](py/README.md#submit-the-full-array). Record the **new job ID**, then return to the [start of step 7](#7-check-the-test-job-and-run-the-full-array) and repeat the checks for all five tasks.
+
+Once the **full array** succeeds, expect five result files, `task-001` through `task-005`, with the extension for your language. Continue to [step 8](#8-download-the-results). Use the troubleshooting section below only if you need to stop or retry a job.
+
 ### Cancel or retry a task
 
 If you need to stop an entire submission, cancel its pending and running tasks with:
@@ -252,7 +300,7 @@ To cancel only task 3, use `scancel 123456_3`. Check `squeue` again to confirm i
 
 After fixing an error and uploading any changes, you can resubmit only task 3 from the same job folder with `sbatch --array=3 submit.sh`. This creates a **new job ID and results folder**; keep track of both submissions when collecting results. Wait for other tasks using the same files to finish before changing the code.
 
-## Download the data saved by your job
+## 8. Download the results
 
 Once all submitted tasks have completed successfully, copy their results to your Windows computer. The commands below use `123456` as the **full array's job ID**, not the earlier single-task test. Replace it, `YOUR_HPC_USERNAME`, and the example local path with your own values.
 
@@ -281,10 +329,10 @@ For **Python**, use these paths for the result folder and logs instead:
 
 ```powershell
 cd "C:\path\to\minimal-hpc-r"
-New-Item -ItemType Directory -Force .\python\job-001\results
-scp -r YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/python/job-001/results/123456 .\python\job-001\results\
-scp "YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/python/job-001/slurm-123456_*.out" .\python\job-001\results\123456\
-Get-ChildItem .\python\job-001\results\123456
+New-Item -ItemType Directory -Force .\py\job-001\results
+scp -r YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/py/job-001/results/123456 .\py\job-001\results\
+scp "YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/py/job-001/slurm-123456_*.out" .\py\job-001\results\123456\
+Get-ChildItem .\py\job-001\results\123456
 ```
 
 Wait for the result download to succeed before copying its logs.
@@ -292,3 +340,10 @@ Wait for the result download to succeed before copying its logs.
 The `*` matches all task numbers for this submission. You should now have the result files and matching logs; the R example produces five `.rds` files, and Python produces five `.csv` files, plus executed `.ipynb` notebooks only if you enabled saving. Repeating a download replaces local files with matching names, so keep your downloaded originals separate from edited or processed data. The cluster copies remain in place.
 
 Keep the results, logs, and the code version used for the run together in your research records. This repository ignores generated results and logs in Git, so pushing your code to GitHub does **not** back them up.
+
+## Related documentation
+
+- Official documentation: https://docs.hpc.gwdg.de/
+- Basic tutorials: https://github.com/jonaden94/hpc_guide
+- Opinionated experimentation workflow: https://github.com/jobrachem/hpc
+- Cheat sheet for Linux commands: https://github.com/RehanSaeed/Bash-Cheat-Sheet

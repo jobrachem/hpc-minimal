@@ -1,8 +1,53 @@
 # Run an R simulation on the GWDG HPC
 
-First complete the [shared SSH and terminal setup](../README.md#set-up-your-basic-workflow). This guide covers the R environment, package installation, local interactive testing, submitting a simulation, and downloading its results.
+Use the [numbered main walkthrough](../README.md) to download the files and set up SSH first. This guide supplies the R steps in that walkthrough; keep the main page open and use the return links at the end of each stage.
 
 Local PowerShell commands use the repository root unless stated otherwise. The interactive R example uses the `r` folder; batch jobs run from `r/job-001` on the cluster.
+
+## Table of contents
+
+- [Prepare and test locally](#prepare-and-test-locally)
+  - [Understand the example](#understand-the-example)
+  - [Try the script in your local R console](#try-the-script-in-your-local-r-console)
+- [Test your R environment on the server](#test-your-r-environment-on-the-server)
+  - [Choose and load an R version](#choose-and-load-an-r-version)
+  - [Check that R works](#check-that-r-works)
+  - [Reuse the same setup](#reuse-the-same-setup)
+- [Install R packages on the server](#install-r-packages-on-the-server)
+  - [Prepare a personal package library](#prepare-a-personal-package-library)
+  - [Install and check a package](#install-and-check-a-package)
+  - [Make packages available to your jobs](#make-packages-available-to-your-jobs)
+- [Submit an R job (as a job array)](#submit-an-r-job-as-a-job-array)
+  - [Check the submission script](#check-the-submission-script)
+  - [Submit one task first](#submit-one-task-first)
+  - [Submit the full array](#submit-the-full-array)
+
+## Prepare and test locally
+
+This is the R part of **step 3** in the main walkthrough. Use your usual R console on your own computer.
+
+### Understand the example
+
+[`job-001/run.R`](job-001/run.R) simulates sample means from a normal distribution with mean 0 and standard deviation 1. Tasks 1–5 use sample sizes 10, 30, 100, 300, and 1,000, respectively. Each task performs 1,000 repetitions and saves a data frame containing the task number, repetition, sample size, and sample mean.
+
+The script uses only base R, so you do not need to install additional packages on the cluster. Each task uses its number as a random seed, making repeat runs reproducible with the same R environment. This is deliberately a tiny teaching example; for a real study, give each task enough work to justify the scheduling overhead.
+
+### Try the script in your local R console
+
+In **R on your own computer**, set the working directory to the local `r` folder and source the script:
+
+```r
+setwd("C:/path/to/minimal-hpc-r/r")
+source("job-001/run.R")
+stopifnot(nrow(results) == 1000L)
+head(results)
+```
+
+You can also run the script section by section in your editor. Its first block detects an interactive R session and sets `task_id <- 1` and `output_dir <- "job-001/results/local-test"`. Edit those defaults to try another task or output folder. The resulting `results` data frame stays in your R session for inspection, and a copy is saved to disk.
+
+The script refuses to overwrite an existing result, so choose a fresh output folder when repeating a task. Under `Rscript` or Slurm, the script reads the task number and output folder from command-line arguments instead.
+
+**Next:** return to [step 4: Upload your code and data](../README.md#4-upload-your-code-and-data). After checking the upload, step 5 sends you to the server setup below.
 
 ## Test your R environment on the server
 
@@ -68,15 +113,11 @@ You should see `[1] 2`; `q()` then returns you to the Linux terminal. Use comput
 
 Load the same compiler and R modules each time you open a new SSH session. We will also put those two `module load` lines in the submission script so each job selects its R environment explicitly. Specifying versions keeps the choice stable if the cluster's defaults change. GWDG recommends loading modules in your session or batch script, rather than automatically in `.bashrc`; see [Module Basics](https://docs.hpc.gwdg.de/software_stacks/module_basics/index.html).
 
-R is now available on the server. After uploading the project files, we will install any additional R packages there.
-
-## Upload the R example
-
-Follow the [shared upload instructions](../README.md#upload-your-code-and-data-to-the-server). They copy `r/job-001/run.R` and `r/job-001/submit.sh` into `~/minimal-hpc-r/r/job-001` on the cluster. Then return here to prepare packages and submit the job.
+R is now available on the server. This example needs no extra packages: return to [step 6: Submit a test job](../README.md#6-submit-a-test-job). If your own code needs packages, complete the optional section below first.
 
 ## Install R packages on the server
 
-Install the packages your experiment needs on the cluster, even if they are already installed on your Windows computer. If your code uses only base R, you can skip this section. The commands below use `digest` as an example; replace it with a package your experiment actually uses.
+Install the packages your experiment needs on the cluster, even if they are already installed on your Windows computer. If your code uses only base R, continue with [step 6: Submit a test job](../README.md#6-submit-a-test-job). The commands below use `digest` as an example; replace it with a package your experiment actually uses.
 
 Run all commands below **in the SSH terminal on the cluster**.
 
@@ -129,30 +170,11 @@ The installed files remain after you disconnect, but the `export` setting belong
 
 Install packages once before submitting jobs; inside your R script, load them with `library()`. Avoid installing or updating packages while jobs are using that library, especially when many job-array tasks run at once.
 
+**Next:** return to [step 6: Submit a test job](../README.md#6-submit-a-test-job).
+
 ## Submit an R job (as a job array)
 
 A **job array** runs the same script several times, giving each run a different task number. This works well for simulations where each task can calculate its results independently. You submit the array once, and Slurm schedules its tasks on compute nodes. See [GWDG's job-array guide](https://docs.hpc.gwdg.de/how_to_use/slurm/job_array/index.html).
-
-### Understand the example
-
-[`job-001/run.R`](job-001/run.R) simulates sample means from a normal distribution with mean 0 and standard deviation 1. Tasks 1–5 use sample sizes 10, 30, 100, 300, and 1,000, respectively. Each task performs 1,000 repetitions and saves a data frame containing the task number, repetition, sample size, and sample mean.
-
-The script uses only base R, so you do not need to install the example packages from the previous section. Each task uses its number as a random seed, making repeat runs reproducible with the same R environment. This is deliberately a tiny teaching example; for a real study, give each task enough work to justify the scheduling overhead.
-
-### Try the script in your local R console
-
-In **R on your own computer**, set the working directory to the local `r` folder and source the script:
-
-```r
-setwd("C:/path/to/minimal-hpc-r/r")
-source("job-001/run.R")
-stopifnot(nrow(results) == 1000L)
-head(results)
-```
-
-You can also run the script section by section in your editor. Its first block detects an interactive R session and sets `task_id <- 1` and `output_dir <- "job-001/results/local-test"`. Edit those defaults to try another task or output folder. The resulting `results` data frame stays in your R session for inspection, and a copy is saved to disk.
-
-The script refuses to overwrite an existing result, so choose a fresh output folder when repeating a task. Under `Rscript` or Slurm, the script reads the task number and output folder from command-line arguments instead.
 
 ### Check the submission script
 
@@ -194,20 +216,17 @@ sbatch --array=1 submit.sh
 
 The command-line option overrides the array range in the file. Slurm returns a message such as `Submitted batch job 123456`. This means the job was accepted, not that it has finished. Keep that number.
 
-Use the [shared monitoring instructions](../README.md#check-the-status-of-your-job) to wait for task 1 to complete successfully. Then inspect `slurm-123456_1.out` using `less`, replacing `123456` with your job ID. It should report that 1,000 repetitions were saved, and `results/123456/task-001.rds` should exist. Resolve any errors before submitting the full array.
+**Next:** return to [step 7: Check the test job](../README.md#7-check-the-test-job-and-run-the-full-array). The log should report that 1,000 repetitions were saved, and `results/JOB_ID/task-001.rds` should exist. Step 7 sends you back to **Submit the full array** below once this test succeeds.
 
 ### Submit the full array
 
-From the same **SSH terminal and directory**, run:
+After step 7 confirms that the single-task test succeeded, submit all five tasks in the **SSH terminal**:
 
 ```bash
+cd ~/minimal-hpc-r/r/job-001
 sbatch submit.sh
 ```
 
 Use `sbatch`, rather than `bash submit.sh`: it requests compute resources and supplies the array variables. Always submit from `~/minimal-hpc-r/r/job-001/`, because the script uses the submission directory to find `run.R` and write outputs. You can disconnect after submission; leave the uploaded code unchanged until all tasks finish.
 
-## Monitor and download your results
-
-Follow the [shared monitoring instructions](../README.md#check-the-status-of-your-job). For the full array, check that all five tasks show `COMPLETED` and exit code `0:0`, and that `results/JOB_ID/` contains `task-001.rds` through `task-005.rds`.
-
-Then follow the [shared download instructions](../README.md#download-the-data-saved-by-your-job), using your full array's job ID. Download the result folder and matching Slurm logs, using the **R** paths.
+**Next:** record the new job ID and return to [step 7](../README.md#7-check-the-test-job-and-run-the-full-array) to check all five tasks. Once they succeed, continue to [step 8: Download the results](../README.md#8-download-the-results), using the **R** paths and your full array's job ID.
