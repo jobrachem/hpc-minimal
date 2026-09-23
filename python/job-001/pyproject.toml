@@ -1,0 +1,11 @@
+[project]
+name = "minimal-hpc-python"
+version = "0.1.0"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "ipykernel>=6.29,<8",
+    "jupyterlab>=4.4,<5",
+    "papermill>=2.6,<3",
+    "numpy>=2.2,<3",
+    "pandas>=2.2,<3",
+]

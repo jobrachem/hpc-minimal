@@ -1,16 +1,23 @@
-# Minimal Example for an R Simulation Study on the GWDG HPC
+# Minimal HPC examples for R and Python
 
-This repository shows how to run a simulation study with R on the GWDG High Performance Cluster.
+This repository introduces running simulation studies on the GWDG High Performance Cluster. The instructions assume a Windows computer and PowerShell for SSH and file transfers.
 
-This guide covers the following topics:
+Start with the [shared setup](#set-up-your-basic-workflow), then follow your language guide:
 
-1. Set up your basic workflow (which tools to use, how to log in, how to work on the server)
-2. Test your R environment on the server
-3. Upload your code and data to the server
-4. Install R packages on the server
-5. Submit an R job (as a job array)
-6. Check the status of your job
-7. Download the data saved by your job.
+- [R](r/README.md): a complete simulation example, from the local R console to a Slurm job array.
+- [Python](python/README.md): a Jupyter notebook simulation with uv and Slurm, including setup for Positron, VS Code, and JupyterLab, plus [environment discovery settings](python/README.md#keep-the-whole-repository-open).
+
+The shared instructions below cover [uploads](#upload-your-code-and-data-to-the-server), [job monitoring](#check-the-status-of-your-job), and [downloads](#download-the-data-saved-by-your-job). Each language guide links back to them when needed.
+
+```text
+README.md              Shared cluster setup and commands
+r/README.md            R walkthrough
+r/job-001/             R simulation and submission script
+python/README.md       Python/Jupyter walkthrough
+python/job-001/        Notebook, submission script, and uv environment files
+```
+
+The repository folder remains named `minimal-hpc-r` in all commands. Keep the same layout on your computer and the cluster. Existing copies of the old top-level `job-001` belong under `r/job-001` now; do not move files used by queued or running jobs.
 
 ## Related documentation
 
@@ -22,11 +29,11 @@ This guide covers the following topics:
 
 ## Set up your basic workflow
 
-You will work in two places: **on your Windows computer**, where you edit and test your R code, and **on the cluster**, where you run larger simulations. Files are separate: after editing locally, you upload the changed files; after a simulation, you download the results.
+You will work in two places: **on your Windows computer**, where you edit and test your code, and **on the cluster**, where you run larger simulations. Files are separate: after editing locally, you upload the changed files; after a simulation, you download the results.
 
 ### Prepare your tools
 
-Keep using your usual editor, such as RStudio. For connecting to the cluster, open **PowerShell** from the Windows Start menu. This is a terminal: you type a command and press Enter to run it. The commands below belong in the terminal, not the R console.
+Keep using your usual editor or notebook application. For connecting to the cluster, open **PowerShell** from the Windows Start menu. This is a terminal: you type a command and press Enter to run it. The commands below belong in the terminal, not an R console or notebook cell.
 
 In PowerShell, check that SSH is available:
 
@@ -91,73 +98,7 @@ cd ~/minimal-hpc-r
 
 Linux paths use `/`, and names are case-sensitive: `run.R` and `run.r` are different files. Tab completes names; the up arrow recalls previous commands. Save shell scripts (`.sh`) with **LF / Unix line endings** in your editor so they run correctly on Linux.
 
-The machine you log into is a shared **login node**, used to prepare files and submit work. Run simulations as jobs through **Slurm**, the scheduler that assigns work to compute nodes. A submitted batch job continues after you disconnect. The [cluster overview](https://docs.hpc.gwdg.de/start_here/using_the_cluster/index.html) explains this division; the following sections cover the R environment, file transfers, and job submission.
-
-## Test your R environment on the server
-
-GWDG provides ready-to-use R installations through **modules**. Loading a module makes a particular software version available in your terminal. Your Windows R installation and its packages are separate from the cluster installation.
-
-Run all commands in this section **in the connected SSH terminal on the cluster**, unless marked as R commands.
-
-### Choose and load an R version
-
-First, find the available R versions:
-
-```bash
-module spider r
-```
-
-For details about one version, include its version number:
-
-```bash
-module spider r/4.5.2
-```
-
-The output tells you which other modules must be loaded first. R may require a **compiler**, which is also used to build some R packages when you install them later.
-
-For example, the [GWDG R documentation](https://docs.hpc.gwdg.de/software_stacks/compilers_interpreters/r/index.html) currently lists R 4.5.2 with GCC 14.2.0 for Emmy CPU nodes. On the Emmy Phase 3 login used above, load them in this order:
-
-```bash
-module load gcc/14.2.0
-module load r/4.5.2
-```
-
-If that version is unavailable, choose one listed by `module spider r` and follow its prerequisite instructions. Keep the exact compiler and R module names you use: you will need the same pair for package installation and job submission.
-
-### Check that R works
-
-Still in the **SSH terminal**, run:
-
-```bash
-module list
-Rscript --version
-Rscript -e 'sessionInfo()'
-```
-
-`module list` shows the loaded modules. `Rscript --version` should report the R version you selected. The last command starts R, prints details about its version, platform, and loaded packages, then exits automatically. These small checks should finish within seconds.
-
-[`Rscript`](https://stat.ethz.ch/R-manual/R-devel/library/utils/html/Rscript.html) runs R code without an interactive console; `-e` supplies the code directly. Later, your batch script will use it to run an `.R` file. The module name is lowercase `r`, but the programs are named `R` and `Rscript`.
-
-For a brief interactive check, start R from the SSH terminal:
-
-```bash
-R --no-save --no-restore
-```
-
-When the `>` prompt appears, you are **inside R**. Try these R commands:
-
-```r
-1 + 1
-q(save = "no")
-```
-
-You should see `[1] 2`; `q()` then returns you to the Linux terminal. Use compute jobs for simulations, as described above.
-
-### Reuse the same setup
-
-Load the same compiler and R modules each time you open a new SSH session. We will also put those two `module load` lines in the submission script so each job selects its R environment explicitly. Specifying versions keeps the choice stable if the cluster's defaults change. GWDG recommends loading modules in your session or batch script, rather than automatically in `.bashrc`; see [Module Basics](https://docs.hpc.gwdg.de/software_stacks/module_basics/index.html).
-
-R is now available on the server. After uploading the project files, we will install any additional R packages there.
+The machine you log into is a shared **login node**, used to prepare files and submit work. Run simulations as jobs through **Slurm**, the scheduler that assigns work to compute nodes. A submitted batch job continues after you disconnect. The [cluster overview](https://docs.hpc.gwdg.de/start_here/using_the_cluster/index.html) explains this division. Continue with the [R guide](r/README.md) for a complete example. The [Python guide](python/README.md) covers Jupyter notebooks with uv.
 
 ## Upload your code and data to the server
 
@@ -165,12 +106,17 @@ Use `scp` to copy files over SSH, using the same login details as before. Keep y
 
 > **Note:** This guide shows an easy way to get started, but manually copying files is error-prone and can quickly become cumbersome. I **highly recommend using a GitHub repository** to version your experiment code and synchronize it between your local computer and the server: commit and push your changes locally, then pull them on the server.
 
+Choose the R example in `r/job-001` or the Python example in `python/job-001` below. Both use the same source-and-destination pattern. Copy code and input files; recreate Python environments on the server instead of uploading `.venv`.
+
 ### Prepare the folders
 
 In the **SSH terminal**, ensure the destination folder exists:
 
 ```bash
-mkdir -p ~/minimal-hpc-r
+# For R:
+mkdir -p ~/minimal-hpc-r/r/job-001
+# For Python:
+mkdir -p ~/minimal-hpc-r/python/job-001
 ```
 
 In **local PowerShell**, move into your local copy of this repository. Replace the example path with its location on your computer; if you downloaded a ZIP, extract it first.
@@ -180,176 +126,63 @@ cd "C:\path\to\minimal-hpc-r"
 Get-ChildItem
 ```
 
-You should see `README.md` and the `job-001` folder. Save any edits in your editor before uploading. If your simulation needs small input files, you can put them in a `data` folder inside `job-001` so they travel with the code.
+You should see `README.md` and the `r` and `python` folders. Save any edits in your editor before uploading. If your simulation needs small input files, you can put them in a `data` folder inside your job folder and copy that folder separately.
 
 This example uses your cluster home directory for a small project. Before uploading large datasets, choose suitable storage using the [GWDG storage guide](https://docs.hpc.gwdg.de/how_to_use/storage_systems/index.html). Run `show-quota` in the SSH terminal to see your storage locations and limits.
 
-### Copy the job folder
+### Copy the job files
 
-In **local PowerShell**, replace `YOUR_HPC_USERNAME` and run:
+In **local PowerShell**, replace `YOUR_HPC_USERNAME` and run the command for your language.
+
+**R:**
 
 ```powershell
-scp -r .\job-001 YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/
+scp .\r\job-001\run.R .\r\job-001\submit.sh YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/r/job-001/
 ```
 
-Use the same hostname as for your SSH login. The command has three parts:
+**Python:**
 
-- `-r` copies a folder and everything inside it.
-- `.\job-001` is the source folder on your Windows computer; `.` means the current directory.
-- `YOUR_HPC_USERNAME@…:minimal-hpc-r/` is the destination on the cluster. The colon separates the server from its path; this relative path starts in your remote home directory.
+```powershell
+scp .\python\job-001\run.ipynb .\python\job-001\submit.sh .\python\job-001\pyproject.toml .\python\job-001\uv.lock YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/python/job-001/
+```
 
-This creates `~/minimal-hpc-r/job-001` on the cluster. Enter your key's passphrase if requested and wait for the PowerShell prompt to return. Check for error messages before continuing. See [GWDG's transfer instructions](https://docs.hpc.gwdg.de/how_to_use/data_transfer/index.html) for more examples.
+Use the same hostname as for your SSH login. The local file paths come first: they are the sources. The server and remote folder come last: they are the destination. The colon separates the server from its path; this relative path starts in your remote home directory. Here, `.` means the current local directory.
+
+This copies the selected files into the matching job folder on the cluster. Enter your key's passphrase if requested and wait for the PowerShell prompt to return. Check for error messages before continuing. See [GWDG's transfer instructions](https://docs.hpc.gwdg.de/how_to_use/data_transfer/index.html) for more examples.
+
+If you added a `data` folder, copy it separately (replace `r` with `python` for Python) with `scp -r`, which copies a folder and its contents:
+
+```powershell
+scp -r .\r\job-001\data YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/r/job-001/
+```
 
 ### Check the uploaded files
 
-Switch back to the **SSH terminal**:
+Switch back to the **SSH terminal** and enter the job folder for your language. For R:
 
 ```bash
-cd ~/minimal-hpc-r/job-001
+cd ~/minimal-hpc-r/r/job-001
 ls -lh
 ```
 
-You should see `run.R` and `submit.sh`, plus any input folders you added.
+For Python:
+
+```bash
+cd ~/minimal-hpc-r/python/job-001
+ls -lh
+```
+
+For R, expect `run.R` and `submit.sh`. For Python, expect `run.ipynb`, `submit.sh`, `pyproject.toml`, and `uv.lock`. Also check any input folders you added.
 
 After changing a file locally, upload it again from **local PowerShell**, still in the repository folder. For example:
 
 ```powershell
-scp .\job-001\run.R YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/job-001/
+scp .\r\job-001\run.R YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/r/job-001/
 ```
 
 `scp` replaces files with the same destination name without asking. Upload only the files you intend to update, and keep files used by queued or running jobs unchanged until those jobs finish. Uploading copies files; it does not run your code.
 
-## Install R packages on the server
-
-Install the packages your experiment needs on the cluster, even if they are already installed on your Windows computer. If your code uses only base R, you can skip this section. The commands below use `digest` as an example; replace it with a package your experiment actually uses.
-
-Run all commands below **in the SSH terminal on the cluster**.
-
-### Prepare a personal package library
-
-A **library** is a folder containing installed R packages. You can create one in your home directory without administrator permissions. First, load the same compiler and R modules you selected earlier:
-
-```bash
-module load gcc/14.2.0
-module load r/4.5.2
-```
-
-GWDG requires packages with compiled code to use the same compiler as R itself; see its [R package instructions](https://docs.hpc.gwdg.de/software_stacks/compilers_interpreters/r/index.html#building-r-packages).
-
-Choose a library folder and create it:
-
-```bash
-export R_LIBS_USER="$HOME/R/library-4.5.2-gcc-14.2.0"
-mkdir -p "$R_LIBS_USER"
-Rscript -e '.libPaths()'
-```
-
-`$HOME` is your home directory on the cluster. `export` makes the `R_LIBS_USER` setting available to R processes started from this terminal. The last command lists the folders R searches for packages; your new folder should appear there. The folder must exist **before R starts** to be included, as explained in the [R library documentation](https://stat.ethz.ch/R-manual/R-devel/library/base/html/libPaths.html).
-
-If you selected different module versions, adjust the folder name to match. Keeping separate libraries avoids mixing packages built with different R or compiler versions.
-
-### Install and check a package
-
-In the **SSH terminal**, run:
-
-```bash
-Rscript -e 'install.packages("digest", lib = Sys.getenv("R_LIBS_USER"), repos = "https://cloud.r-project.org")'
-```
-
-This downloads the package and its required dependencies from CRAN into your personal library. Specifying `repos` avoids an interactive mirror-selection prompt. To install several packages, replace `"digest"` with a vector such as `c("digest", "withr")`. See [`install.packages()`](https://stat.ethz.ch/R-manual/R-devel/library/utils/html/install.packages.html) for details.
-
-Keep the terminal open and wait for installation to finish. Compilation can take several minutes. A warning about a **non-zero exit status** means an installation failed; inspect the preceding error message before proceeding. Missing system libraries may require additional modules or help from GWDG support.
-
-Check the result in a fresh R process:
-
-```bash
-Rscript -e 'library(digest); packageVersion("digest")'
-```
-
-This should load the package and print its version without an error. If R cannot find it, check that you loaded the same modules and set `R_LIBS_USER` to the installation folder.
-
-### Make packages available to your jobs
-
-The installed files remain after you disconnect, but the `export` setting belongs to your current terminal session. Repeat it in each new session after loading the modules. We will include the same module commands and `export R_LIBS_USER=...` line in the submission script.
-
-Install packages once before submitting jobs; inside your R script, load them with `library()`. Avoid installing or updating packages while jobs are using that library, especially when many job-array tasks run at once.
-
-## Submit an R job (as a job array)
-
-A **job array** runs the same script several times, giving each run a different task number. This works well for simulations where each task can calculate its results independently. You submit the array once, and Slurm schedules its tasks on compute nodes. See [GWDG's job-array guide](https://docs.hpc.gwdg.de/how_to_use/slurm/job_array/index.html).
-
-### Understand the example
-
-[`job-001/run.R`](job-001/run.R) simulates sample means from a normal distribution with mean 0 and standard deviation 1. Tasks 1–5 use sample sizes 10, 30, 100, 300, and 1,000, respectively. Each task performs 1,000 repetitions and saves a data frame containing the task number, repetition, sample size, and sample mean.
-
-The script uses only base R, so you do not need to install the example packages from the previous section. Each task uses its number as a random seed, making repeat runs reproducible with the same R environment. This is deliberately a tiny teaching example; for a real study, give each task enough work to justify the scheduling overhead.
-
-### Try the script in your local R console
-
-In **R on your own computer**, set the working directory to the local `job-001` folder and source the script:
-
-```r
-setwd("C:/path/to/minimal-hpc-r/job-001")
-source("run.R")
-stopifnot(nrow(results) == 1000L)
-head(results)
-```
-
-You can also run the script section by section in your editor. Its first block detects an interactive R session and sets `task_id <- 1` and `output_dir <- "results/local-test"`. Edit those defaults to try another task or output folder. The resulting `results` data frame stays in your R session for inspection, and a copy is saved to disk.
-
-The script refuses to overwrite an existing result, so choose a fresh output folder when repeating a task. Under `Rscript` or Slurm, the script reads the task number and output folder from command-line arguments instead.
-
-### Check the submission script
-
-Open [`job-001/submit.sh`](job-001/submit.sh) in your **local editor**. Lines beginning with `#SBATCH` tell Slurm what to request:
-
-| Setting | Meaning |
-| --- | --- |
-| `--partition=scc-cpu` | Use the SCC CPU partition on Emmy Phase 3 |
-| `--nodes=1`, `--ntasks=1`, `--cpus-per-task=1` | Run one R process with one CPU per array task |
-| `--mem=1G` | Request 1 GiB of memory per array task |
-| `--time=00:05:00` | Allow up to five minutes per array task |
-| `--array=1-5%2` | Run tasks 1–5, with at most two running at once |
-| `--output=slurm-%A_%a.out` | Give each task its own log, containing printed output and errors |
-
-The partition must match your access; consult the [CPU partition table](https://docs.hpc.gwdg.de/how_to_use/compute_partitions/cpu_partitions/index.html) if you are not using SCC on Emmy Phase 3. Adjust the R/compiler modules and personal library path if you chose different versions earlier.
-
-The script loads that environment, limits common numerical libraries to one thread, and runs:
-
-```bash
-Rscript run.R "$SLURM_ARRAY_TASK_ID" "results/$SLURM_ARRAY_JOB_ID"
-```
-
-Slurm supplies both variables: the first selects the sample size, and the second identifies this submission. An array with job ID `123456` writes `results/123456/task-001.rds` through `task-005.rds`. Each new submission gets its own folder, and the R script refuses to replace an existing result file. In log names, `%A` and `%a` stand for the array job ID and task number. See the [Slurm array reference](https://slurm.schedmd.com/job_array.html).
-
-### Submit one task first
-
-Save your edits and upload the current `run.R` and `submit.sh`. From **local PowerShell**, in the repository folder:
-
-```powershell
-scp .\job-001\run.R .\job-001\submit.sh YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/job-001/
-```
-
-Then, in the **SSH terminal**, submit only task 1:
-
-```bash
-cd ~/minimal-hpc-r/job-001
-sbatch --array=1 submit.sh
-```
-
-The command-line option overrides the array range in the file. Slurm returns a message such as `Submitted batch job 123456`. This means the job was accepted, not that it has finished. Keep that number.
-
-Once the task finishes, inspect `slurm-123456_1.out` using `less`, replacing `123456` with your job ID. It should report that 1,000 repetitions were saved, and `results/123456/task-001.rds` should exist. Resolve any errors before submitting the full array.
-
-### Submit the full array
-
-From the same **SSH terminal and directory**, run:
-
-```bash
-sbatch submit.sh
-```
-
-Use `sbatch`, rather than `bash submit.sh`: it requests compute resources and supplies the array variables. Always submit from `job-001/`, because the script uses the submission directory to find `run.R` and write outputs. You can disconnect after submission; leave the uploaded code unchanged until all tasks finish.
+Return to your language guide after checking the uploaded files: [R](r/README.md#install-r-packages-on-the-server) or [Python](python/README.md#prepare-the-environment-on-scc).
 
 ## Check the status of your job
 
@@ -369,18 +202,17 @@ squeue --me --array
 squeue --array --jobs=123456
 ```
 
-Depending on the cluster's output format, the state column is called `STATE` or `ST`. It shows `PENDING` (or `PD`) for tasks waiting to start, `RUNNING` (or `R`) for running tasks, and `COMPLETING` (or `CG`) while a task finishes up. Long labels may be truncated. The `NODELIST(REASON)` column shows the compute node or why a task is waiting. `Resources` and `Priority` are normal waiting reasons; `JobArrayTaskLimit` means the array has reached its concurrency limit, which our script sets to two. Check again later rather than submitting another copy. See [Slurm's reason codes](https://slurm.schedmd.com/job_reason_codes.html).
+Depending on the cluster's output format, the state column is called `STATE` or `ST`. It shows `PENDING` (or `PD`) for tasks waiting to start, `RUNNING` (or `R`) for running tasks, and `COMPLETING` (or `CG`) while a task finishes up. Long labels may be truncated. The `NODELIST(REASON)` column shows the compute node or why a task is waiting. `Resources` and `Priority` are normal waiting reasons; `JobArrayTaskLimit` means the array has reached its concurrency limit, set by the `%` limit in the submission script. Check again later rather than submitting another copy. See [Slurm's reason codes](https://slurm.schedmd.com/job_reason_codes.html).
 
 ### Read a task's log
 
-From the job folder, inspect the last 20 lines of task 1's log:
+In the job folder from which you submitted the job, inspect the last 20 lines of task 1's log:
 
 ```bash
-cd ~/minimal-hpc-r/job-001
 tail -n 20 slurm-123456_1.out
 ```
 
-For the full log, use `less slurm-123456_1.out` and press `q` to close it. Change `_1` to the task number you want to inspect. Logs normally appear after a task starts, so a pending task may not have one yet. Our R script prints a `Saved 1000 repetitions to ...` message after writing its result file.
+For the full log, use `less slurm-123456_1.out` and press `q` to close it. Change `_1` to the task number you want to inspect. Logs normally appear after a task starts, so a pending task may not have one yet. The language guide explains what a successful run should produce.
 
 ### Confirm that every task finished successfully
 
@@ -390,7 +222,7 @@ Completed and failed jobs disappear from `squeue`. An empty queue therefore does
 sacct --array -X -j 123456 --format=JobID%20,State%20,ExitCode,Elapsed
 ```
 
-`-X` hides the extra records for internal job steps. Check all five task rows for the full array, or just task 1 for the initial test. Each should show `COMPLETED` and exit code `0:0`, meaning the job script exited successfully without a terminating signal. `Elapsed` is the runtime. Accounting records can take a little time to update; if a just-finished task is missing, check again shortly. See the [`sacct` reference](https://slurm.schedmd.com/sacct.html).
+`-X` hides the extra records for internal job steps. Check every task you submitted: all five rows for either example's full array, or just task 1 for its initial test. Each should show `COMPLETED` and exit code `0:0`, meaning the job script exited successfully without a terminating signal. `Elapsed` is the runtime. Accounting records can take a little time to update; if a just-finished task is missing, check again shortly. See the [`sacct` reference](https://slurm.schedmd.com/sacct.html).
 
 | Final state | What to do |
 | --- | --- |
@@ -400,9 +232,9 @@ sacct --array -X -j 123456 --format=JobID%20,State%20,ExitCode,Elapsed
 | `OUT_OF_MEMORY` | Review memory use and requested `--mem` |
 | `CANCELLED` | The task was stopped before normal completion |
 
-These are [Slurm job states](https://slurm.schedmd.com/job_state_codes.html). Successful execution does not establish that the scientific results are correct; inspect the downloaded data too.
+These are [Slurm job states](https://slurm.schedmd.com/job_state_codes.html).
 
-For the full array, confirm that its output folder contains `task-001.rds` through `task-005.rds`:
+Also check the expected output files listed in your language guide. For a submission that writes to `results/123456/`:
 
 ```bash
 ls -lh results/123456/
@@ -418,55 +250,45 @@ scancel 123456
 
 To cancel only task 3, use `scancel 123456_3`. Check `squeue` again to confirm it has stopped. Cancellation does not remove existing logs or results. See [GWDG's job-control commands](https://docs.hpc.gwdg.de/how_to_use/slurm/index.html#important-slurm-commands).
 
-After fixing an error and uploading any changes, you can resubmit only task 3 from `job-001/` with `sbatch --array=3 submit.sh`. This creates a **new job ID and results folder**; keep track of both submissions when collecting results. Wait for other tasks using the same files to finish before changing the code.
+After fixing an error and uploading any changes, you can resubmit only task 3 from the same job folder with `sbatch --array=3 submit.sh`. This creates a **new job ID and results folder**; keep track of both submissions when collecting results. Wait for other tasks using the same files to finish before changing the code.
 
 ## Download the data saved by your job
 
-Once all five tasks have completed successfully, copy their results to your Windows computer. The commands below use `123456` as the **full array's job ID**, not the earlier single-task test. Replace it, `YOUR_HPC_USERNAME`, and the example local path with your own values.
+Once all submitted tasks have completed successfully, copy their results to your Windows computer. The commands below use `123456` as the **full array's job ID**, not the earlier single-task test. Replace it, `YOUR_HPC_USERNAME`, and the example local path with your own values.
+
+Choose the command block for your language below. Both download into the matching local job folder.
 
 ### Copy results and logs to Windows
 
-Open **local PowerShell**, outside the SSH session, and move into your local repository folder:
+Open **local PowerShell**, outside the SSH session, and move into your local repository folder. For **R**:
 
 ```powershell
 cd "C:\path\to\minimal-hpc-r"
-New-Item -ItemType Directory -Force .\job-001\results
-scp -r YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/job-001/results/123456 .\job-001\results\
+New-Item -ItemType Directory -Force .\r\job-001\results
+scp -r YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/r/job-001/results/123456 .\r\job-001\results\
 ```
 
-`New-Item` ensures the local results folder exists. `scp` downloads the files. This time the remote path comes first: it is the source, and the local folder is the destination. The download creates `job-001\results\123456` on your computer. Use the same hostname as for your SSH login, enter your key's passphrase if requested, and wait for the prompt to return. Check for transfer errors. See [GWDG's download examples](https://docs.hpc.gwdg.de/how_to_use/data_transfer/index.html#data-transfers-connecting-from-the-outside-world).
+`New-Item` ensures the local results folder exists. `scp` downloads the files. This time the remote path comes first: it is the source, and the local folder is the destination. The download creates `r\job-001\results\123456` on your computer. Use the same hostname as for your SSH login, enter your key's passphrase if requested, and wait for the prompt to return. Check for transfer errors. See [GWDG's download examples](https://docs.hpc.gwdg.de/how_to_use/data_transfer/index.html#data-transfers-connecting-from-the-outside-world).
 
 After the result download succeeds, copy the matching logs into that folder too:
 
 ```powershell
-scp "YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/job-001/slurm-123456_*.out" .\job-001\results\123456\
-Get-ChildItem .\job-001\results\123456
+scp "YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/r/job-001/slurm-123456_*.out" .\r\job-001\results\123456\
+Get-ChildItem .\r\job-001\results\123456
 ```
 
-The `*` matches all task numbers for this submission. You should now have five `.rds` files and their logs. Repeating a download replaces local files with matching names, so keep your downloaded originals separate from edited or processed data. The cluster copies remain in place.
+For **Python**, use these paths for the result folder and logs instead:
 
-### Open and combine the results in R
-
-Start **R on your Windows computer**, for example in RStudio. Set its working directory to your local repository folder; use forward slashes in R paths:
-
-```r
-setwd("C:/path/to/minimal-hpc-r")
+```powershell
+cd "C:\path\to\minimal-hpc-r"
+New-Item -ItemType Directory -Force .\python\job-001\results
+scp -r YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/python/job-001/results/123456 .\python\job-001\results\
+scp "YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/python/job-001/slurm-123456_*.out" .\python\job-001\results\123456\
+Get-ChildItem .\python\job-001\results\123456
 ```
 
-An `.rds` file stores one R object. Our files each contain a data frame, which you can restore with [`readRDS()`](https://stat.ethz.ch/R-manual/R-devel/library/base/html/readRDS.html). In your **local R console**, read the five expected files and combine their rows:
+Wait for the result download to succeed before copying its logs.
 
-```r
-files <- file.path("job-001", "results", "123456", sprintf("task-%03d.rds", 1:5))
-stopifnot(all(file.exists(files)))
-results <- do.call(rbind, lapply(files, readRDS))
-stopifnot(nrow(results) == 5000L)
-head(results)
-table(results$task_id)
-aggregate(sample_mean ~ sample_size, data = results, FUN = sd)
-```
-
-`stopifnot()` stops with an error if a check fails, so missing files are not silently skipped. `lapply()` reads each file, and `rbind` joins the data frames. Expect 5,000 rows in total and 1,000 for each task. The final command shows how much the sample means vary at each sample size; this should decrease as the sample size increases.
-
-If you retried a task under a new job ID, download that submission separately and replace the corresponding entry in `files` before reading the results. Include each task once, and use results produced by the same experiment code and settings.
+The `*` matches all task numbers for this submission. You should now have the result files and matching logs; the R example produces five `.rds` files, and Python produces five `.csv` files, plus executed `.ipynb` notebooks only if you enabled saving. Repeating a download replaces local files with matching names, so keep your downloaded originals separate from edited or processed data. The cluster copies remain in place.
 
 Keep the results, logs, and the code version used for the run together in your research records. This repository ignores generated results and logs in Git, so pushing your code to GitHub does **not** back them up.
