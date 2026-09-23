@@ -5,7 +5,7 @@
 if (interactive()) {
   # Edit these when sourcing the script or running it section by section.
   task_id <- 1
-  output_dir <- "results/local-test"
+  output_dir <- "job-001/results/local-test"
 } else {
   args <- commandArgs(trailingOnly = TRUE)
   if (length(args) != 2L) {
