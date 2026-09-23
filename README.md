@@ -209,7 +209,7 @@ cd ~/minimal-hpc-r/job-001
 ls -lh
 ```
 
-You should see `run.R`, `submit.sh`, and `download.sh`, plus any input folders you added. 
+You should see `run.R` and `submit.sh`, plus any input folders you added.
 
 After changing a file locally, upload it again from **local PowerShell**, still in the repository folder. For example:
 
@@ -404,3 +404,54 @@ scancel 123456
 To cancel only task 3, use `scancel 123456_3`. Check `squeue` again to confirm it has stopped. Cancellation does not remove existing logs or results. See [GWDG's job-control commands](https://docs.hpc.gwdg.de/how_to_use/slurm/index.html#important-slurm-commands).
 
 After fixing an error and uploading any changes, you can resubmit only task 3 from `job-001/` with `sbatch --array=3 submit.sh`. This creates a **new job ID and results folder**; keep track of both submissions when collecting results. Wait for other tasks using the same files to finish before changing the code.
+
+## Download the data saved by your job
+
+Once all five tasks have completed successfully, copy their results to your Windows computer. The commands below use `123456` as the **full array's job ID**, not the earlier single-task test. Replace it, `YOUR_HPC_USERNAME`, and the example local path with your own values.
+
+### Copy results and logs to Windows
+
+Open **local PowerShell**, outside the SSH session, and move into your local repository folder:
+
+```powershell
+cd "C:\path\to\minimal-hpc-r"
+New-Item -ItemType Directory -Force .\job-001\results
+scp -r YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/job-001/results/123456 .\job-001\results\
+```
+
+`New-Item` ensures the local results folder exists. `scp` downloads the files. This time the remote path comes first: it is the source, and the local folder is the destination. The download creates `job-001\results\123456` on your computer. Use the same hostname as for your SSH login, enter your key's passphrase if requested, and wait for the prompt to return. Check for transfer errors. See [GWDG's download examples](https://docs.hpc.gwdg.de/how_to_use/data_transfer/index.html#data-transfers-connecting-from-the-outside-world).
+
+After the result download succeeds, copy the matching logs into that folder too:
+
+```powershell
+scp "YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/job-001/slurm-123456_*.out" .\job-001\results\123456\
+Get-ChildItem .\job-001\results\123456
+```
+
+The `*` matches all task numbers for this submission. You should now have five `.rds` files and their logs. Repeating a download replaces local files with matching names, so keep your downloaded originals separate from edited or processed data. The cluster copies remain in place.
+
+### Open and combine the results in R
+
+Start **R on your Windows computer**, for example in RStudio. Set its working directory to your local repository folder; use forward slashes in R paths:
+
+```r
+setwd("C:/path/to/minimal-hpc-r")
+```
+
+An `.rds` file stores one R object. Our files each contain a data frame, which you can restore with [`readRDS()`](https://stat.ethz.ch/R-manual/R-devel/library/base/html/readRDS.html). In your **local R console**, read the five expected files and combine their rows:
+
+```r
+files <- file.path("job-001", "results", "123456", sprintf("task-%03d.rds", 1:5))
+stopifnot(all(file.exists(files)))
+results <- do.call(rbind, lapply(files, readRDS))
+stopifnot(nrow(results) == 5000L)
+head(results)
+table(results$task_id)
+aggregate(sample_mean ~ sample_size, data = results, FUN = sd)
+```
+
+`stopifnot()` stops with an error if a check fails, so missing files are not silently skipped. `lapply()` reads each file, and `rbind` joins the data frames. Expect 5,000 rows in total and 1,000 for each task. The final command shows how much the sample means vary at each sample size; this should decrease as the sample size increases.
+
+If you retried a task under a new job ID, download that submission separately and replace the corresponding entry in `files` before reading the results. Include each task once, and use results produced by the same experiment code and settings.
+
+Keep the results, logs, and the code version used for the run together in your research records. This repository ignores generated results and logs in Git, so pushing your code to GitHub does **not** back them up.
