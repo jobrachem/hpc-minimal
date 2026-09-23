@@ -5,7 +5,7 @@ This repository shows how to run a simulation study with R on the GWDG High Perf
 This guide covers the following topics:
 
 1. Set up your basic workflow (which tools to use, how to log in, how to work on the server)
-2. Set up your R environment on the server
+2. Test your R environment on the server
 3. Upload your code and data to the server
 4. Install R packages on the server
 5. Submit an R job (as a job array)
@@ -218,3 +218,59 @@ scp .\job-001\run.R YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/job-00
 ```
 
 `scp` replaces files with the same destination name without asking. Upload only the files you intend to update, and keep files used by queued or running jobs unchanged until those jobs finish. Uploading copies files; it does not run your code.
+
+## Install R packages on the server
+
+Install the packages your experiment needs on the cluster, even if they are already installed on your Windows computer. If your code uses only base R, you can skip this section. The commands below use `digest` as an example; replace it with a package your experiment actually uses.
+
+Run all commands below **in the SSH terminal on the cluster**.
+
+### Prepare a personal package library
+
+A **library** is a folder containing installed R packages. You can create one in your home directory without administrator permissions. First, load the same compiler and R modules you selected earlier:
+
+```bash
+module load gcc/14.2.0
+module load r/4.5.2
+```
+
+GWDG requires packages with compiled code to use the same compiler as R itself; see its [R package instructions](https://docs.hpc.gwdg.de/software_stacks/compilers_interpreters/r/index.html#building-r-packages).
+
+Choose a library folder and create it:
+
+```bash
+export R_LIBS_USER="$HOME/R/library-4.5.2-gcc-14.2.0"
+mkdir -p "$R_LIBS_USER"
+Rscript -e '.libPaths()'
+```
+
+`$HOME` is your home directory on the cluster. `export` makes the `R_LIBS_USER` setting available to R processes started from this terminal. The last command lists the folders R searches for packages; your new folder should appear there. The folder must exist **before R starts** to be included, as explained in the [R library documentation](https://stat.ethz.ch/R-manual/R-devel/library/base/html/libPaths.html).
+
+If you selected different module versions, adjust the folder name to match. Keeping separate libraries avoids mixing packages built with different R or compiler versions.
+
+### Install and check a package
+
+In the **SSH terminal**, run:
+
+```bash
+Rscript -e 'install.packages("digest", lib = Sys.getenv("R_LIBS_USER"), repos = "https://cloud.r-project.org")'
+```
+
+This downloads the package and its required dependencies from CRAN into your personal library. Specifying `repos` avoids an interactive mirror-selection prompt. To install several packages, replace `"digest"` with a vector such as `c("digest", "withr")`. See [`install.packages()`](https://stat.ethz.ch/R-manual/R-devel/library/utils/html/install.packages.html) for details.
+
+Keep the terminal open and wait for installation to finish. Compilation can take several minutes. A warning about a **non-zero exit status** means an installation failed; inspect the preceding error message before proceeding. Missing system libraries may require additional modules or help from GWDG support.
+
+Check the result in a fresh R process:
+
+```bash
+Rscript -e 'library(digest); packageVersion("digest")'
+```
+
+This should load the package and print its version without an error. If R cannot find it, check that you loaded the same modules and set `R_LIBS_USER` to the installation folder.
+
+### Make packages available to your jobs
+
+The installed files remain after you disconnect, but the `export` setting belongs to your current terminal session. Repeat it in each new session after loading the modules. We will include the same module commands and `export R_LIBS_USER=...` line in the submission script.
+
+Install packages once before submitting jobs; inside your R script, load them with `library()`. Avoid installing or updating packages while jobs are using that library, especially when many job-array tasks run at once.
+
