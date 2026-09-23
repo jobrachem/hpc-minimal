@@ -159,3 +159,62 @@ Load the same compiler and R modules each time you open a new SSH session. We wi
 
 R is now available on the server. After uploading the project files, we will install any additional R packages there.
 
+## Upload your code and data to the server
+
+Use `scp` to copy files over SSH, using the same login details as before. Keep your **SSH terminal** open and open a second, **local PowerShell** window for uploads. The local window can access the files on your Windows computer.
+
+> **Note:** This guide shows an easy way to get started, but manually copying files is error-prone and can quickly become cumbersome. I **highly recommend using a GitHub repository** to version your experiment code and synchronize it between your local computer and the server: commit and push your changes locally, then pull them on the server.
+
+### Prepare the folders
+
+In the **SSH terminal**, ensure the destination folder exists:
+
+```bash
+mkdir -p ~/minimal-hpc-r
+```
+
+In **local PowerShell**, move into your local copy of this repository. Replace the example path with its location on your computer; if you downloaded a ZIP, extract it first.
+
+```powershell
+cd "C:\path\to\minimal-hpc-r"
+Get-ChildItem
+```
+
+You should see `README.md` and the `job-001` folder. Save any edits in your editor before uploading. If your simulation needs small input files, you can put them in a `data` folder inside `job-001` so they travel with the code.
+
+This example uses your cluster home directory for a small project. Before uploading large datasets, choose suitable storage using the [GWDG storage guide](https://docs.hpc.gwdg.de/how_to_use/storage_systems/index.html). Run `show-quota` in the SSH terminal to see your storage locations and limits.
+
+### Copy the job folder
+
+In **local PowerShell**, replace `YOUR_HPC_USERNAME` and run:
+
+```powershell
+scp -r .\job-001 YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/
+```
+
+Use the same hostname as for your SSH login. The command has three parts:
+
+- `-r` copies a folder and everything inside it.
+- `.\job-001` is the source folder on your Windows computer; `.` means the current directory.
+- `YOUR_HPC_USERNAME@…:minimal-hpc-r/` is the destination on the cluster. The colon separates the server from its path; this relative path starts in your remote home directory.
+
+This creates `~/minimal-hpc-r/job-001` on the cluster. Enter your key's passphrase if requested and wait for the PowerShell prompt to return. Check for error messages before continuing. See [GWDG's transfer instructions](https://docs.hpc.gwdg.de/how_to_use/data_transfer/index.html) for more examples.
+
+### Check the uploaded files
+
+Switch back to the **SSH terminal**:
+
+```bash
+cd ~/minimal-hpc-r/job-001
+ls -lh
+```
+
+You should see `run.R`, `submit.sh`, and `download.sh`, plus any input folders you added. 
+
+After changing a file locally, upload it again from **local PowerShell**, still in the repository folder. For example:
+
+```powershell
+scp .\job-001\run.R YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/job-001/
+```
+
+`scp` replaces files with the same destination name without asking. Upload only the files you intend to update, and keep files used by queued or running jobs unchanged until those jobs finish. Uploading copies files; it does not run your code.
