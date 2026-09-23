@@ -274,3 +274,133 @@ The installed files remain after you disconnect, but the `export` setting belong
 
 Install packages once before submitting jobs; inside your R script, load them with `library()`. Avoid installing or updating packages while jobs are using that library, especially when many job-array tasks run at once.
 
+## Submit an R job (as a job array)
+
+A **job array** runs the same script several times, giving each run a different task number. This works well for simulations where each task can calculate its results independently. You submit the array once, and Slurm schedules its tasks on compute nodes. See [GWDG's job-array guide](https://docs.hpc.gwdg.de/how_to_use/slurm/job_array/index.html).
+
+### Understand the example
+
+[`job-001/run.R`](job-001/run.R) simulates sample means from a normal distribution with mean 0 and standard deviation 1. Tasks 1–5 use sample sizes 10, 30, 100, 300, and 1,000, respectively. Each task performs 1,000 repetitions and saves a data frame containing the task number, repetition, sample size, and sample mean.
+
+The script uses only base R, so you do not need to install the example packages from the previous section. Each task uses its number as a random seed, making repeat runs reproducible with the same R environment. This is deliberately a tiny teaching example; for a real study, give each task enough work to justify the scheduling overhead.
+
+### Check the submission script
+
+Open [`job-001/submit.sh`](job-001/submit.sh) in your **local editor**. Lines beginning with `#SBATCH` tell Slurm what to request:
+
+| Setting | Meaning |
+| --- | --- |
+| `--partition=scc-cpu` | Use the SCC CPU partition on Emmy Phase 3 |
+| `--nodes=1`, `--ntasks=1`, `--cpus-per-task=1` | Run one R process with one CPU per array task |
+| `--mem=1G` | Request 1 GiB of memory per array task |
+| `--time=00:05:00` | Allow up to five minutes per array task |
+| `--array=1-5%2` | Run tasks 1–5, with at most two running at once |
+| `--output=slurm-%A_%a.out` | Give each task its own log, containing printed output and errors |
+
+The partition must match your access; consult the [CPU partition table](https://docs.hpc.gwdg.de/how_to_use/compute_partitions/cpu_partitions/index.html) if you are not using SCC on Emmy Phase 3. Adjust the R/compiler modules and personal library path if you chose different versions earlier.
+
+The script loads that environment, limits common numerical libraries to one thread, and runs:
+
+```bash
+Rscript run.R "$SLURM_ARRAY_TASK_ID" "results/$SLURM_ARRAY_JOB_ID"
+```
+
+Slurm supplies both variables: the first selects the sample size, and the second identifies this submission. An array with job ID `123456` writes `results/123456/task-001.rds` through `task-005.rds`. Each new submission gets its own folder, and the R script refuses to replace an existing result file. In log names, `%A` and `%a` stand for the array job ID and task number. See the [Slurm array reference](https://slurm.schedmd.com/job_array.html).
+
+### Submit one task first
+
+Save your edits and upload the current `run.R` and `submit.sh`. From **local PowerShell**, in the repository folder:
+
+```powershell
+scp .\job-001\run.R .\job-001\submit.sh YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/job-001/
+```
+
+Then, in the **SSH terminal**, submit only task 1:
+
+```bash
+cd ~/minimal-hpc-r/job-001
+sbatch --array=1 submit.sh
+```
+
+The command-line option overrides the array range in the file. Slurm returns a message such as `Submitted batch job 123456`. This means the job was accepted, not that it has finished. Keep that number.
+
+Once the task finishes, inspect `slurm-123456_1.out` using `less`, replacing `123456` with your job ID. It should report that 1,000 repetitions were saved, and `results/123456/task-001.rds` should exist. Resolve any errors before submitting the full array.
+
+### Submit the full array
+
+From the same **SSH terminal and directory**, run:
+
+```bash
+sbatch submit.sh
+```
+
+Use `sbatch`, rather than `bash submit.sh`: it requests compute resources and supplies the array variables. Always submit from `job-001/`, because the script uses the submission directory to find `run.R` and write outputs. You can disconnect after submission; leave the uploaded code unchanged until all tasks finish.
+
+## Check the status of your job
+
+Run these commands **in the SSH terminal on the cluster**. Replace `123456` with the job ID returned by `sbatch`; your single-task test and full array have different IDs.
+
+### Check the queue
+
+To see your queued and running tasks:
+
+```bash
+squeue --me --array
+```
+
+`--array` displays each array task on its own line. For just one submission, use:
+
+```bash
+squeue --array --jobs=123456
+```
+
+In the `ST` column, `PD` means pending (waiting to start), `R` means running, and `CG` means completing. The `NODELIST(REASON)` column shows the compute node or why a task is waiting. `Resources` and `Priority` are normal waiting reasons; `JobArrayTaskLimit` means the array has reached its concurrency limit, which our script sets to two. Check again later rather than submitting another copy. See [Slurm's reason codes](https://slurm.schedmd.com/job_reason_codes.html).
+
+### Read a task's log
+
+From the job folder, inspect the last 20 lines of task 1's log:
+
+```bash
+cd ~/minimal-hpc-r/job-001
+tail -n 20 slurm-123456_1.out
+```
+
+For the full log, use `less slurm-123456_1.out` and press `q` to close it. Change `_1` to the task number you want to inspect. Logs normally appear after a task starts, so a pending task may not have one yet. Our R script prints a `Saved 1000 repetitions to ...` message after writing its result file.
+
+### Confirm that every task finished successfully
+
+Completed and failed jobs disappear from `squeue`. An empty queue therefore does **not** prove success. Look up the recorded outcome with `sacct`:
+
+```bash
+sacct --array -X -j 123456 --format=JobID%20,State%20,ExitCode,Elapsed
+```
+
+`-X` hides the extra records for internal job steps. Check all five task rows for the full array, or just task 1 for the initial test. Each should show `COMPLETED` and exit code `0:0`, meaning the job script exited successfully without a terminating signal. `Elapsed` is the runtime. Accounting records can take a little time to update; if a just-finished task is missing, check again shortly. See the [`sacct` reference](https://slurm.schedmd.com/sacct.html).
+
+| Final state | What to do |
+| --- | --- |
+| `COMPLETED` | Check the expected result file and its contents |
+| `FAILED` | Read the task's log for the error |
+| `TIMEOUT` | Review the workload and requested `--time` |
+| `OUT_OF_MEMORY` | Review memory use and requested `--mem` |
+| `CANCELLED` | The task was stopped before normal completion |
+
+These are [Slurm job states](https://slurm.schedmd.com/job_state_codes.html). Successful execution does not establish that the scientific results are correct; inspect the downloaded data too.
+
+For the full array, confirm that its output folder contains `task-001.rds` through `task-005.rds`:
+
+```bash
+ls -lh results/123456/
+```
+
+### Cancel or retry a task
+
+If you need to stop an entire submission, cancel its pending and running tasks with:
+
+```bash
+scancel 123456
+```
+
+To cancel only task 3, use `scancel 123456_3`. Check `squeue` again to confirm it has stopped. Cancellation does not remove existing logs or results. See [GWDG's job-control commands](https://docs.hpc.gwdg.de/how_to_use/slurm/index.html#important-slurm-commands).
+
+After fixing an error and uploading any changes, you can resubmit only task 3 from `job-001/` with `sbatch --array=3 submit.sh`. This creates a **new job ID and results folder**; keep track of both submissions when collecting results. Wait for other tasks using the same files to finish before changing the code.
