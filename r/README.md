@@ -1,8 +1,8 @@
 # Run an R simulation on the GWDG HPC
 
-Use the [numbered main walkthrough](../README.md) to download the files and set up SSH first. This guide supplies the R steps in that walkthrough; keep the main page open and use the return links at the end of each stage.
+Use the numbered walkthrough for [macOS](../guides/macos.md), [Linux](../guides/linux.md), or [Windows](../guides/windows.md) to download the files and set up SSH first. This guide supplies the R steps in that walkthrough; keep the main page open and use the return links at the end of each stage.
 
-Local PowerShell commands use the repository root unless stated otherwise. The interactive R example uses the `r` folder; batch jobs run from `r/job-001` on the cluster.
+Local terminal commands use the repository root unless stated otherwise. The interactive R example uses the `r` folder; batch jobs run from `r/job-001` on the cluster.
 
 ## Table of contents
 
@@ -34,10 +34,38 @@ The script uses only base R, so you do not need to install additional packages o
 
 ### Try the script in your local R console
 
-In **R on your own computer**, set the working directory to the local `r` folder and source the script:
+In **R on your own computer**, set the working directory to the local `r` folder and source the script. Expand your operating system below and run its `setwd()` line, replacing the example path with your repository location:
+
+<details>
+<summary>macOS</summary>
+
+```r
+setwd("/Users/YOUR_NAME/path/to/minimal-hpc-r/r")
+```
+
+</details>
+
+<details>
+<summary>Linux</summary>
+
+```r
+setwd("/home/YOUR_NAME/path/to/minimal-hpc-r/r")
+```
+
+</details>
+
+<details>
+<summary>Windows</summary>
 
 ```r
 setwd("C:/path/to/minimal-hpc-r/r")
+```
+
+</details>
+
+Then run:
+
+```r
 source("job-001/run.R")
 stopifnot(nrow(results) == 1000L)
 head(results)
@@ -47,11 +75,11 @@ You can also run the script section by section in your editor. Its first block d
 
 The script refuses to overwrite an existing result, so choose a fresh output folder when repeating a task. Under `Rscript` or Slurm, the script reads the task number and output folder from command-line arguments instead.
 
-**Next:** return to [step 4: Upload your code and data](../README.md#4-upload-your-code-and-data). After checking the upload, step 5 sends you to the server setup below.
+**Next:** return to step 4: Upload your code and data ([macOS](../guides/macos.md#4-upload-your-code-and-data), [Linux](../guides/linux.md#4-upload-your-code-and-data), [Windows](../guides/windows.md#4-upload-your-code-and-data)). After checking the upload, step 5 sends you to the server setup below.
 
 ## Test your R environment on the server
 
-GWDG provides ready-to-use R installations through **modules**. Loading a module makes a particular software version available in your terminal. Your Windows R installation and its packages are separate from the cluster installation.
+GWDG provides ready-to-use R installations through **modules**. Loading a module makes a particular software version available in your terminal. Your local R installation and its packages are separate from the cluster installation.
 
 Run all commands in this section **in the connected SSH terminal on the cluster**, unless marked as R commands.
 
@@ -113,11 +141,11 @@ You should see `[1] 2`; `q()` then returns you to the Linux terminal. Use comput
 
 Load the same compiler and R modules each time you open a new SSH session. We will also put those two `module load` lines in the submission script so each job selects its R environment explicitly. Specifying versions keeps the choice stable if the cluster's defaults change. GWDG recommends loading modules in your session or batch script, rather than automatically in `.bashrc`; see [Module Basics](https://docs.hpc.gwdg.de/software_stacks/module_basics/index.html).
 
-R is now available on the server. This example needs no extra packages: return to [step 6: Submit a test job](../README.md#6-submit-a-test-job). If your own code needs packages, complete the optional section below first.
+R is now available on the server. This example needs no extra packages: return to step 6: Submit a test job ([macOS](../guides/macos.md#6-submit-a-test-job), [Linux](../guides/linux.md#6-submit-a-test-job), [Windows](../guides/windows.md#6-submit-a-test-job)). If your own code needs packages, complete the optional section below first.
 
 ## Install R packages on the server
 
-Install the packages your experiment needs on the cluster, even if they are already installed on your Windows computer. If your code uses only base R, continue with [step 6: Submit a test job](../README.md#6-submit-a-test-job). The commands below use `digest` as an example; replace it with a package your experiment actually uses.
+Install the packages your experiment needs on the cluster, even if they are already installed on your local computer. If your code uses only base R, continue with step 6: Submit a test job ([macOS](../guides/macos.md#6-submit-a-test-job), [Linux](../guides/linux.md#6-submit-a-test-job), [Windows](../guides/windows.md#6-submit-a-test-job)). The commands below use `digest` as an example; replace it with a package your experiment actually uses.
 
 Run all commands below **in the SSH terminal on the cluster**.
 
@@ -170,7 +198,7 @@ The installed files remain after you disconnect, but the `export` setting belong
 
 Install packages once before submitting jobs; inside your R script, load them with `library()`. Avoid installing or updating packages while jobs are using that library, especially when many job-array tasks run at once.
 
-**Next:** return to [step 6: Submit a test job](../README.md#6-submit-a-test-job).
+**Next:** return to step 6: Submit a test job ([macOS](../guides/macos.md#6-submit-a-test-job), [Linux](../guides/linux.md#6-submit-a-test-job), [Windows](../guides/windows.md#6-submit-a-test-job)).
 
 ## Submit an R job (as a job array)
 
@@ -201,11 +229,7 @@ Slurm supplies both variables: the first selects the sample size, and the second
 
 ### Submit one task first
 
-Save your edits and upload the current `run.R` and `submit.sh`. From **local PowerShell**, in the repository folder:
-
-```powershell
-scp .\r\job-001\run.R .\r\job-001\submit.sh YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/r/job-001/
-```
+Save your edits and upload the current `run.R` and `submit.sh` using the R upload command in step 4 of your walkthrough ([macOS](../guides/macos.md#copy-the-job-files), [Linux](../guides/linux.md#copy-the-job-files), [Windows](../guides/windows.md#copy-the-job-files)).
 
 Then, in the **SSH terminal**, submit only task 1:
 
@@ -216,7 +240,7 @@ sbatch --array=1 submit.sh
 
 The command-line option overrides the array range in the file. Slurm returns a message such as `Submitted batch job 123456`. This means the job was accepted, not that it has finished. Keep that number.
 
-**Next:** return to [step 7: Check the test job](../README.md#7-check-the-test-job-and-run-the-full-array). The log should report that 1,000 repetitions were saved, and `results/JOB_ID/task-001.rds` should exist. Step 7 sends you back to **Submit the full array** below once this test succeeds.
+**Next:** return to step 7: Check the test job ([macOS](../guides/macos.md#7-check-the-test-job-and-run-the-full-array), [Linux](../guides/linux.md#7-check-the-test-job-and-run-the-full-array), [Windows](../guides/windows.md#7-check-the-test-job-and-run-the-full-array)). The log should report that 1,000 repetitions were saved, and `results/JOB_ID/task-001.rds` should exist. Step 7 sends you back to **Submit the full array** below once this test succeeds.
 
 ### Submit the full array
 
@@ -229,4 +253,4 @@ sbatch submit.sh
 
 Use `sbatch`, rather than `bash submit.sh`: it requests compute resources and supplies the array variables. Always submit from `~/minimal-hpc-r/r/job-001/`, because the script uses the submission directory to find `run.R` and write outputs. You can disconnect after submission; leave the uploaded code unchanged until all tasks finish.
 
-**Next:** record the new job ID and return to [step 7](../README.md#7-check-the-test-job-and-run-the-full-array) to check all five tasks. Once they succeed, continue to [step 8: Download the results](../README.md#8-download-the-results), using the **R** paths and your full array's job ID.
+**Next:** record the new job ID and return to step 7 ([macOS](../guides/macos.md#7-check-the-test-job-and-run-the-full-array), [Linux](../guides/linux.md#7-check-the-test-job-and-run-the-full-array), [Windows](../guides/windows.md#7-check-the-test-job-and-run-the-full-array)) to check all five tasks. Once they succeed, continue to step 8: Download the results ([macOS](../guides/macos.md#8-download-the-results), [Linux](../guides/linux.md#8-download-the-results), [Windows](../guides/windows.md#8-download-the-results)), using the **R** paths and your full array's job ID.

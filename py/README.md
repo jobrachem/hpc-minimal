@@ -1,6 +1,6 @@
 # Run Python notebooks on the GWDG HPC
 
-Use the [numbered main walkthrough](../README.md) to download the files and set up SSH first. This guide supplies the Python steps in that walkthrough; keep the main page open and use the return links at the end of each stage. You will test a notebook locally, then submit it to Slurm.
+Use the numbered walkthrough for [macOS](../guides/macos.md), [Linux](../guides/linux.md), or [Windows](../guides/windows.md) to download the files and set up SSH first. This guide supplies the Python steps in that walkthrough; keep the main page open and use the return links at the end of each stage. You will test a notebook locally, then submit it to Slurm.
 
 The example uses **uv** to manage Python and its packages. Keep [`pyproject.toml`](job-001/pyproject.toml) and [`uv.lock`](job-001/uv.lock) with your notebook in Git; each computer gets its own `.venv` environment.
 
@@ -26,24 +26,70 @@ The example uses **uv** to manage Python and its packages. Keep [`pyproject.toml
 
 This begins the Python part of **step 3** in the main walkthrough. Continue through the local notebook and parameter-passing checks before uploading.
 
-In **local PowerShell**, check whether uv is installed:
+In your **local terminal** (Terminal on macOS/Linux, PowerShell on Windows), check whether uv is installed:
 
-```powershell
+```sh
 uv --version
 ```
 
-If Windows cannot find it, install it with WinGet, then open a new PowerShell window:
+Expand your operating system below. Install uv only if the check above failed, then move into the Python example. Replace the example path with your repository location.
+
+<details>
+<summary>macOS</summary>
+
+If uv is missing, install it:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+After installation, open a new terminal and run `uv --version` again. Then move into the example:
+
+```bash
+cd "/Users/YOUR_NAME/path/to/minimal-hpc-r/py/job-001"
+```
+
+</details>
+
+<details>
+<summary>Linux</summary>
+
+If uv is missing, install it:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+After installation, open a new terminal and run `uv --version` again. Then move into the example:
+
+```bash
+cd "/home/YOUR_NAME/path/to/minimal-hpc-r/py/job-001"
+```
+
+</details>
+
+<details>
+<summary>Windows</summary>
+
+If uv is missing, install it:
 
 ```powershell
 winget install --id=astral-sh.uv -e
 ```
 
-See the [uv installation guide](https://docs.astral.sh/uv/getting-started/installation/) for other installation methods.
-
-Move into the Python example and create its environment:
+After installation, open a new PowerShell window and run `uv --version` again. Then move into the example:
 
 ```powershell
 cd "C:\path\to\minimal-hpc-r\py\job-001"
+```
+
+</details>
+
+See the [uv installation guide](https://docs.astral.sh/uv/getting-started/installation/) for other installation methods, including a `wget` command if `curl` is unavailable.
+
+Then create the environment (the same commands work on all three systems):
+
+```sh
 uv sync --locked
 uv run --locked python --version
 ```
@@ -56,17 +102,43 @@ The dependencies include NumPy and pandas for the simulation, JupyterLab for int
 
 Choose [Positron](#in-positron), [VS Code](#in-vs-code), or [JupyterLab](#in-jupyterlab) below; you only need one. A notebook's **kernel** is the Python process that executes its cells. Select the environment created by `uv sync --locked` so the notebook has the project's packages.
 
+Expand your operating system for the interpreter path and Command Palette shortcut used in the editor instructions below:
+
+<details>
+<summary>macOS</summary>
+
+- **Interpreter:** `py/job-001/.venv/bin/python` inside your repository.
+- **Command Palette:** **Cmd+Shift+P**.
+
+</details>
+
+<details>
+<summary>Linux</summary>
+
+- **Interpreter:** `py/job-001/.venv/bin/python` inside your repository.
+- **Command Palette:** **Ctrl+Shift+P**.
+
+</details>
+
+<details>
+<summary>Windows</summary>
+
+- **Interpreter:** `py\job-001\.venv\Scripts\python.exe` inside your repository.
+- **Command Palette:** **Ctrl+Shift+P**.
+
+</details>
+
 ### In Positron
 
 After `uv sync --locked` finishes, open the job folder as your project:
 
 1. In Positron, choose **File → Open Folder…** and select `minimal-hpc-r/py/job-001`. The Explorer should show `run.ipynb`, `pyproject.toml`, and `uv.lock` directly inside the open folder.
 2. Open `run.ipynb` and click the kernel name (or **Select Kernel**) at the top of the notebook. If offered, choose **Select Environment…** to see the available environments.
-3. Select **Python 3.13… (uv: minimal-hpc-python)**. Check that its path is inside this job's `.venv`: `.venv\Scripts\python.exe` on Windows, or `.venv/bin/python` on macOS/Linux. The patch version may vary.
+3. Select **Python 3.13… (uv: minimal-hpc-python)**. Check that its path matches the interpreter in your platform's details above, inside this job's `.venv`. The patch version may vary.
 
 **Open the `job-001` folder itself.** Opening the entire `minimal-hpc-r` repository, the `py` folder, or only the notebook can leave the environment out of the picker. Positron discovers `.venv` at the root of the open project; see [Python environment discovery](https://positron.posit.co/python-installations.html#discovery-locations). To keep the whole repository open instead, use the [workspace settings below](#keep-the-whole-repository-open).
 
-If the environment is still missing, confirm that `uv sync --locked` completed in `py/job-001`, then open the Command Palette (**Ctrl+Shift+P** on Windows, **Cmd+Shift+P** on macOS) and run **Interpreter: Discover All Interpreters**. Reopen the notebook's kernel picker.
+If the environment is still missing, confirm that `uv sync --locked` completed in `py/job-001`, then open the Command Palette (using the shortcut in your platform’s details above) and run **Interpreter: Discover All Interpreters**. Reopen the notebook's kernel picker.
 
 Continue with [Check the notebook's Python](#check-the-notebooks-python).
 
@@ -76,11 +148,11 @@ Install Microsoft's **Python** and **Jupyter** extensions in VS Code. After `uv 
 
 1. Choose **File → Open Folder…** and select `minimal-hpc-r/py/job-001`. The Explorer should show `run.ipynb`, `pyproject.toml`, and `uv.lock` directly inside the open folder.
 2. Open `run.ipynb` and click **Select Kernel** (or the current kernel name) at the top right. Choose **Select Another Kernel…**, if shown, then **Python Environments**.
-3. Select the Python 3.13 environment whose path is this job's `.venv\Scripts\python.exe` on Windows, or `.venv/bin/python` on macOS/Linux. Check the path, since several environments may have the same name or Python version.
+3. Select the Python 3.13 environment whose path matches the interpreter in your platform's details above, inside this job's `.venv`. Check the path, since several environments may have the same name or Python version.
 
 The notebook's kernel selection is separate from **Python: Select Interpreter** for Python scripts. See [VS Code's kernel selection guide](https://code.visualstudio.com/docs/datascience/jupyter-kernel-management).
 
-If the environment is missing, confirm that `uv sync --locked` completed and that you opened the job folder. With Microsoft's **Python Environments** extension installed, run **Python Environments: Refresh All Environment Managers** from the Command Palette (**Ctrl+Shift+P** on Windows, **Cmd+Shift+P** on macOS), then reopen the notebook's kernel picker. To keep the whole repository open, use the [workspace settings below](#keep-the-whole-repository-open).
+If the environment is missing, confirm that `uv sync --locked` completed and that you opened the job folder. With Microsoft's **Python Environments** extension installed, run **Python Environments: Refresh All Environment Managers** from the Command Palette (using the shortcut in your platform’s details above), then reopen the notebook's kernel picker. To keep the whole repository open, use the [workspace settings below](#keep-the-whole-repository-open).
 
 Continue with [Check the notebook's Python](#check-the-notebooks-python).
 
@@ -90,7 +162,36 @@ Use this option if you want to browse several jobs in one editor window. Open `m
 
 Add the setting for your editor inside the existing outer `{ ... }`, separating settings with commas. Preserve any other settings already there. The examples below are complete files if yours is empty. Settings help the editor find environments; run `uv sync --locked` inside each job folder to create them first.
 
-**Positron: list the environments explicitly.** Replace `C:/path/to/minimal-hpc-r` with the actual location on your computer:
+**Positron: list the environments explicitly.** Expand your operating system for an example, replacing the path with the actual location on your computer:
+
+<details>
+<summary>macOS</summary>
+
+```json
+{
+    "python.interpreters.include": [
+        "/Users/YOUR_NAME/path/to/minimal-hpc-r/py/job-001/.venv"
+    ]
+}
+```
+
+</details>
+
+<details>
+<summary>Linux</summary>
+
+```json
+{
+    "python.interpreters.include": [
+        "/home/YOUR_NAME/path/to/minimal-hpc-r/py/job-001/.venv"
+    ]
+}
+```
+
+</details>
+
+<details>
+<summary>Windows</summary>
 
 ```json
 {
@@ -100,7 +201,9 @@ Add the setting for your editor inside the existing outer `{ ... }`, separating 
 }
 ```
 
-Use forward slashes in these JSON paths, including on Windows. On macOS/Linux, use an absolute path such as `/Users/YOUR_NAME/projects/minimal-hpc-r/py/job-001/.venv`. After creating another job's environment, add its full `.venv` path as another comma-separated entry in the list. Include only paths that exist.
+</details>
+
+Use forward slashes in these JSON paths. After creating another job’s environment, add its full `.venv` path as another comma-separated entry in the list. Include only paths that exist.
 
 Positron's setting accepts absolute paths, not wildcard patterns or `${workspaceFolder}`. A single `py/job-*/.venv` entry therefore does not work, and pointing it at the parent `py` folder is not a recursive search for all nested environments. See [Posit's interpreter settings reference](https://docs.posit.co/ide/server-pro/admin/positron_sessions/interpreter_settings.html).
 
@@ -132,13 +235,13 @@ import sys
 print(sys.executable)
 ```
 
-The printed path should end in `py\job-001\.venv\Scripts\python.exe` on Windows, or `py/job-001/.venv/bin/python` on macOS/Linux. Remove the temporary cell afterward, then continue with [Understand the example](#understand-the-example).
+The printed path should end with the interpreter path in your platform’s details under [Try the notebook on your computer](#try-the-notebook-on-your-computer). Remove the temporary cell afterward, then continue with [Understand the example](#understand-the-example).
 
 ### In JupyterLab
 
-From the same **local PowerShell** window, start JupyterLab:
+From the same **local terminal** window, start JupyterLab:
 
-```powershell
+```sh
 uv run --locked jupyter lab
 ```
 
@@ -165,24 +268,55 @@ Before uploading, choose a fresh output folder, restart the notebook's kernel, a
 
 ### Try parameter passing locally
 
-In **local PowerShell**, still in `py/job-001`, run task 3 through Papermill:
+In your **local terminal**, still in `py/job-001`, expand your operating system and run task 3 through Papermill:
+
+<details>
+<summary>macOS</summary>
+
+```bash
+mkdir -p ./results/local-batch
+uv run --locked papermill run.ipynb /dev/null -p task_id 3 -p output_dir results/local-batch --execution-timeout 120
+```
+
+`/dev/null` discards the executed notebook. To keep one for inspection, replace it with `results/local-batch/task-003.ipynb`.
+
+</details>
+
+<details>
+<summary>Linux</summary>
+
+```bash
+mkdir -p ./results/local-batch
+uv run --locked papermill run.ipynb /dev/null -p task_id 3 -p output_dir results/local-batch --execution-timeout 120
+```
+
+`/dev/null` discards the executed notebook. To keep one for inspection, replace it with `results/local-batch/task-003.ipynb`.
+
+</details>
+
+<details>
+<summary>Windows</summary>
 
 ```powershell
 New-Item -ItemType Directory -Force .\results\local-batch
 uv run --locked papermill run.ipynb NUL -p task_id 3 -p output_dir results/local-batch --execution-timeout 120
 ```
 
-This runs without a browser and saves `task-003.csv`. `NUL` is the Windows discard destination, so no executed notebook is saved (on macOS or Linux, use `/dev/null`). To keep one for inspection, replace `NUL` with `results/local-batch/task-003.ipynb`. Choose a fresh output folder to repeat the check. The local command has a two-minute per-cell timeout because it runs outside Slurm; increase it for longer cells.
+`NUL` discards the executed notebook. To keep one for inspection, replace it with `results/local-batch/task-003.ipynb`.
+
+</details>
+
+This runs without a browser and saves `task-003.csv`. Choose a fresh output folder to repeat the check. The local command has a two-minute per-cell timeout because it runs outside Slurm; increase it for longer cells.
 
 ### Add packages when you need them
 
-This is optional; the example already declares its dependencies. If you do not need extra packages, return to [step 4: Upload your code and data](../README.md#4-upload-your-code-and-data).
+This is optional; the example already declares its dependencies. If you do not need extra packages, return to step 4: Upload your code and data ([macOS](../guides/macos.md#4-upload-your-code-and-data), [Linux](../guides/linux.md#4-upload-your-code-and-data), [Windows](../guides/windows.md#4-upload-your-code-and-data)).
 
-In **local PowerShell**, in `py/job-001`, use `uv add PACKAGE_NAME` to add a dependency. This updates `pyproject.toml`, `uv.lock`, and the environment. Restart the notebook kernel after changing packages, and commit both dependency files with the code. See [uv's dependency guide](https://docs.astral.sh/uv/concepts/projects/dependencies/).
+In your **local terminal**, in `py/job-001`, use `uv add PACKAGE_NAME` to add a dependency. This updates `pyproject.toml`, `uv.lock`, and the environment. Restart the notebook kernel after changing packages, and commit both dependency files with the code. See [uv's dependency guide](https://docs.astral.sh/uv/concepts/projects/dependencies/).
 
 Upload the updated dependency files before your next submission. The submission script runs `uv sync --locked` automatically; running it manually first catches installation problems before the job starts. Keep the dependency files, environment, and notebook unchanged while queued or running jobs use them.
 
-**Next:** return to [step 4: Upload your code and data](../README.md#4-upload-your-code-and-data), using the **Python** commands. Upload `run.ipynb`, `submit.sh`, `pyproject.toml`, and `uv.lock`; recreate `.venv` on the server. After checking the upload, step 5 sends you to the server setup below.
+**Next:** return to step 4: Upload your code and data ([macOS](../guides/macos.md#4-upload-your-code-and-data), [Linux](../guides/linux.md#4-upload-your-code-and-data), [Windows](../guides/windows.md#4-upload-your-code-and-data)), using the **Python** commands. Upload `run.ipynb`, `submit.sh`, `pyproject.toml`, and `uv.lock`; recreate `.venv` on the server. After checking the upload, step 5 sends you to the server setup below.
 
 ## Prepare the environment on SCC
 
@@ -202,7 +336,7 @@ The submission script also runs `uv sync --locked` at startup, creating `.venv` 
 
 After syncing, the script uses `uv run --no-sync --offline` to execute the notebook with that environment, without another installation check.
 
-**Next:** return to [step 6: Submit a test job](../README.md#6-submit-a-test-job).
+**Next:** return to step 6: Submit a test job ([macOS](../guides/macos.md#6-submit-a-test-job), [Linux](../guides/linux.md#6-submit-a-test-job), [Windows](../guides/windows.md#6-submit-a-test-job)).
 
 ## Submit the notebook as a job array
 
@@ -234,14 +368,14 @@ Each task then saves an executed notebook beside its CSV. This can help when ins
 
 ### Submit one task first
 
-Save any edits to `submit.sh` or the notebook and repeat the [Python upload command in step 4](../README.md#copy-the-job-files). Then, in the **SSH terminal**, run:
+Save any edits to `submit.sh` or the notebook and repeat the Python upload command in step 4 ([macOS](../guides/macos.md#copy-the-job-files), [Linux](../guides/linux.md#copy-the-job-files), [Windows](../guides/windows.md#copy-the-job-files)). Then, in the **SSH terminal**, run:
 
 ```bash
 cd ~/minimal-hpc-r/py/job-001
 sbatch --array=1 submit.sh
 ```
 
-Slurm returns a job ID. **Next:** record it and return to [step 7: Check the test job](../README.md#7-check-the-test-job-and-run-the-full-array). Expect `results/JOB_ID/task-001.csv` with 1,000 rows, plus `task-001.ipynb` if you enabled notebook saving. Step 7 sends you back to **Submit the full array** below once this test succeeds.
+Slurm returns a job ID. **Next:** record it and return to step 7: Check the test job ([macOS](../guides/macos.md#7-check-the-test-job-and-run-the-full-array), [Linux](../guides/linux.md#7-check-the-test-job-and-run-the-full-array), [Windows](../guides/windows.md#7-check-the-test-job-and-run-the-full-array)). Expect `results/JOB_ID/task-001.csv` with 1,000 rows, plus `task-001.ipynb` if you enabled notebook saving. Step 7 sends you back to **Submit the full array** below once this test succeeds.
 
 ### Submit the full array
 
@@ -254,4 +388,4 @@ sbatch submit.sh
 
 Use `sbatch`, not `bash submit.sh`: Slurm supplies the task and job IDs and assigns compute resources. The new submission gets its own job ID and results folder. You can disconnect while it runs.
 
-**Next:** record the new job ID and return to [step 7](../README.md#7-check-the-test-job-and-run-the-full-array) to check all five tasks. Expect five CSVs under `results/JOB_ID/` (plus five executed notebooks if enabled). Once they succeed, continue to [step 8: Download the results](../README.md#8-download-the-results), using the **Python** paths and your full array's job ID.
+**Next:** record the new job ID and return to step 7 ([macOS](../guides/macos.md#7-check-the-test-job-and-run-the-full-array), [Linux](../guides/linux.md#7-check-the-test-job-and-run-the-full-array), [Windows](../guides/windows.md#7-check-the-test-job-and-run-the-full-array)) to check all five tasks. Expect five CSVs under `results/JOB_ID/` (plus five executed notebooks if enabled). Once they succeed, continue to step 8: Download the results ([macOS](../guides/macos.md#8-download-the-results), [Linux](../guides/linux.md#8-download-the-results), [Windows](../guides/windows.md#8-download-the-results)), using the **Python** paths and your full array's job ID.
