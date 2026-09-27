@@ -8,8 +8,6 @@ First download the examples and set up SSH using your [macOS](../guides/macos.md
 
 ## Prepare and test locally
 
-### Understand the example
-
 [`run.ipynb`](job-001/run.ipynb) simulates sample means. Tasks 1–5 use sample sizes 10, 30, 100, 300, and 1,000; each task saves 1,000 repetitions. Its first cell sets `task_id` and `output_dir` for local runs. Keep that cell's `parameters` tag and put simulation code in later cells: the cluster script uses Papermill to supply these values for each task.
 
 ### Prepare your local Python environment
@@ -81,9 +79,10 @@ This installs the locked packages into `py/job-001/.venv` and downloads Python 3
 
 In your editor, open **`minimal-hpc-r`**, keeping all jobs visible. Local terminal commands still run from `py/job-001`; in a new terminal at the repository root, first run `cd py/job-001`.
 
-Choose **one** editor below. The notebook's kernel is the Python environment that runs its cells.
+Expand the instructions for **your editor** below. The notebook's kernel is the Python environment that runs its cells.
 
-#### Positron
+<details>
+<summary><strong>Positron</strong></summary>
 
 1. Open the Command Palette (**Cmd+Shift+P** on macOS, **Ctrl+Shift+P** on Windows/Linux) and run **Preferences: Open Workspace Settings (JSON)**.
 2. Add the setting for your OS below, using your actual repository path. Preserve other settings, separating them with commas.
@@ -137,13 +136,19 @@ See [Posit's interpreter settings](https://docs.posit.co/ide/server-pro/admin/po
 
 </details>
 
-#### VS Code
+</details>
+
+<details>
+<summary><strong>VS Code</strong></summary>
 
 Install Microsoft's **Python**, **Jupyter**, and **Python Environments** extensions. Open `py/job-001/run.ipynb`, choose **Select Kernel → Python Environments** (via **Select Another Kernel…** if shown), and select this job's `.venv`. Start with the default settings; notebook kernel discovery may not find every environment shown by the environment manager.
 
 If it is missing, run **Python Environments: Refresh All Environment Managers** from the Command Palette. For further help, see [kernel selection](https://code.visualstudio.com/docs/datascience/jupyter-kernel-management); you can also use JupyterLab below with the same environment.
 
-#### JupyterLab
+</details>
+
+<details>
+<summary><strong>JupyterLab</strong></summary>
 
 In your **local terminal**, still in `py/job-001`:
 
@@ -152,6 +157,8 @@ uv run --locked jupyter lab --notebook-dir=../..
 ```
 
 This opens the whole repository in your browser. Keep the terminal open, open `py/job-001/run.ipynb`, and select **Python 3 (ipykernel)** if prompted. If no browser opens, use the URL printed in the terminal.
+
+</details>
 
 ### Run the example locally
 
@@ -243,8 +250,6 @@ Keep the notebook, dependency files, and environment unchanged while queued or r
 
 A **job array** runs the same code for several task numbers, with each task saving its own result.
 
-### Check the submission script
-
 Open [`submit.sh`](job-001/submit.sh) locally. It requests one CPU, 1 GiB of memory, and five minutes per task. `--array=1-5%2` runs five tasks, at most two at a time. Adjust these settings for your own workload.
 
 The script uses `scc-cpu`; other accounts/islands may need a different [partition](https://docs.hpc.gwdg.de/how_to_use/compute_partitions/cpu_partitions/index.html). For **email notifications**, replace `YOUR_EMAIL@example.com` and uncomment the two mail directives. They notify you when the array starts, ends, or fails.
@@ -259,9 +264,9 @@ Leave it commented when you only need CSVs and logs; notebook outputs can take s
 
 Upload any edits using the [upload commands above](#upload-code-and-data) before submitting.
 
-### Submit one task first
+### Submit and check jobs
 
-In the **SSH terminal**:
+First submit one task in the **SSH terminal**:
 
 ```bash
 cd ~/minimal-hpc-r/py/job-001
@@ -270,9 +275,7 @@ sbatch --array=1 submit.sh
 
 Record the job ID printed by `sbatch`. Use `sbatch`, not `bash submit.sh`, so Slurm supplies the task IDs and compute resources. You can disconnect after submitting.
 
-### Check the test job
-
-In the **SSH terminal**, still in the job folder, replace `123456` with your job ID:
+Check the test job in the **SSH terminal**, still in the job folder. Replace `123456` with your job ID:
 
 ```bash
 squeue --me --array
@@ -284,9 +287,7 @@ tail -n 20 slurm-123456_1.out
 
 The log should report 1,000 saved repetitions, and `results/123456/task-001.csv` should exist. For a failed job, read its log before retrying; `TIMEOUT` or `OUT_OF_MEMORY` may require a higher `--time` or `--mem` in `submit.sh`.
 
-### Submit the full array
-
-After the test succeeds, run in the same **SSH terminal**:
+After the test succeeds, submit the full array in the same **SSH terminal**:
 
 ```bash
 sbatch submit.sh

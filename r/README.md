@@ -8,8 +8,6 @@ First download the examples and set up SSH using your [macOS](../guides/macos.md
 
 ## Prepare and test locally
 
-### Understand the example
-
 [`run.R`](job-001/run.R) simulates sample means. Tasks 1–5 use sample sizes 10, 30, 100, 300, and 1,000; each task saves 1,000 repetitions. It uses only base R and seeds each task by its number.
 
 ### Keep the whole repository open
@@ -142,17 +140,15 @@ Use the same compiler, R version, and `R_LIBS_USER` in your session and `submit.
 
 A **job array** runs the same code for several task numbers, with each task saving its own result.
 
-### Check the submission script
-
 Open [`submit.sh`](job-001/submit.sh) locally. It requests one CPU, 1 GiB of memory, and five minutes per task. `--array=1-5%2` runs five tasks, at most two at a time. Adjust these settings for your own workload.
 
 The script uses `scc-cpu`; other accounts/islands may need a different [partition](https://docs.hpc.gwdg.de/how_to_use/compute_partitions/cpu_partitions/index.html). For **email notifications**, replace `YOUR_EMAIL@example.com` and uncomment the two mail directives. They notify you when the array starts, ends, or fails.
 
 Upload any edits using the [upload commands above](#upload-code-and-data) before submitting.
 
-### Submit one task first
+### Submit and check jobs
 
-In the **SSH terminal**:
+First submit one task in the **SSH terminal**:
 
 ```bash
 cd ~/minimal-hpc-r/r/job-001
@@ -161,9 +157,7 @@ sbatch --array=1 submit.sh
 
 Record the job ID printed by `sbatch`. Use `sbatch`, not `bash submit.sh`, so Slurm supplies the task IDs and compute resources. You can disconnect after submitting.
 
-### Check the test job
-
-In the **SSH terminal**, still in the job folder, replace `123456` with your job ID:
+Check the test job in the **SSH terminal**, still in the job folder. Replace `123456` with your job ID:
 
 ```bash
 squeue --me --array
@@ -175,9 +169,7 @@ tail -n 20 slurm-123456_1.out
 
 The log should report 1,000 saved repetitions, and `results/123456/task-001.rds` should exist. For a failed job, read its log before retrying; `TIMEOUT` or `OUT_OF_MEMORY` may require a higher `--time` or `--mem` in `submit.sh`.
 
-### Submit the full array
-
-After the test succeeds, run in the same **SSH terminal**:
+After the test succeeds, submit the full array in the same **SSH terminal**:
 
 ```bash
 sbatch submit.sh
