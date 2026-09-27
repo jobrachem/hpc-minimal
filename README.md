@@ -10,4 +10,4 @@ Start with the guide for **your computer**:
 
 It covers downloading the examples and connecting to the cluster. Then follow the [R walkthrough](r/README.md) or [Python walkthrough](py/README.md) from local testing to downloaded results. You only need one language.
 
-The examples live in `r/job-001` and `py/job-001`. The OS guides also provide upload and download commands when you need them.
+The examples live in `r/job-001` and `py/job-001`. Each language walkthrough includes its upload and download commands.

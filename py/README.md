@@ -174,7 +174,55 @@ The supplied example needs no extra packages. For your own notebook, run `uv add
 
 ### Upload code and data
 
-Save your edits and use the **Python** upload commands for [macOS](../guides/macos.md#upload-code-and-data), [Linux](../guides/linux.md#upload-code-and-data), or [Windows](../guides/windows.md#upload-code-and-data). That section also shows how to include your own input data. Then continue here.
+Save your edits, then create the destination in the **SSH terminal**:
+
+```bash
+mkdir -p ~/minimal-hpc-r/py/job-001
+```
+
+In your **local terminal**, use your OS block below. Replace the example path and `YOUR_HPC_USERNAME`; if you connected to a different login host, use that host here too. Save `submit.sh` with **LF / Unix line endings**.
+
+<details>
+<summary>macOS</summary>
+
+```bash
+cd "/Users/YOUR_NAME/path/to/minimal-hpc-r/py/job-001"
+scp run.ipynb submit.sh pyproject.toml uv.lock YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/py/job-001/
+```
+
+</details>
+
+<details>
+<summary>Linux</summary>
+
+```bash
+cd "/home/YOUR_NAME/path/to/minimal-hpc-r/py/job-001"
+scp run.ipynb submit.sh pyproject.toml uv.lock YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/py/job-001/
+```
+
+</details>
+
+<details>
+<summary>Windows</summary>
+
+```powershell
+cd "C:/path/to/minimal-hpc-r/py/job-001"
+scp run.ipynb submit.sh pyproject.toml uv.lock YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/py/job-001/
+```
+
+</details>
+
+Wait for the transfer to finish without errors. `scp` replaces matching destination files; leave files used by queued or running jobs unchanged until they finish.
+
+Recreate Python's `.venv` on the cluster; do not upload it.
+
+**For your own input data:** put small files in `py/job-001/data`. From the same **local terminal**, still in the job folder, copy it with:
+
+```sh
+scp -r data YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/py/job-001/
+```
+
+This command works on all three systems. For large datasets, choose storage using the [GWDG storage guide](https://docs.hpc.gwdg.de/how_to_use/storage_systems/index.html). Run `show-quota` in SSH to check your limits.
 
 ### Create the cluster environment
 
@@ -209,7 +257,7 @@ notebook_output="$output_dir/$(printf 'task-%03d.ipynb' "$SLURM_ARRAY_TASK_ID")"
 
 Leave it commented when you only need CSVs and logs; notebook outputs can take substantial space.
 
-Upload any edits using the same [macOS](../guides/macos.md#upload-code-and-data), [Linux](../guides/linux.md#upload-code-and-data), or [Windows](../guides/windows.md#upload-code-and-data) commands before submitting.
+Upload any edits using the [upload commands above](#upload-code-and-data) before submitting.
 
 ### Submit one task first
 
@@ -248,7 +296,48 @@ Record the **new job ID** and repeat the checks above with it. All five tasks sh
 
 ### Download and open results
 
-Use your **full array's job ID** and the **Python** download commands for [macOS](../guides/macos.md#download-results), [Linux](../guides/linux.md#download-results), or [Windows](../guides/windows.md#download-results). Keep the results, logs, and code version together.
+In your **local terminal**, use your OS block below. Replace the example path and `YOUR_HPC_USERNAME`, and use your **full array's job ID** in place of `123456`. Use the same login host as for uploading. Wait for the result download to succeed before copying its logs.
+
+<details>
+<summary>macOS</summary>
+
+```bash
+cd "/Users/YOUR_NAME/path/to/minimal-hpc-r/py/job-001"
+mkdir -p results
+scp -r YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/py/job-001/results/123456 ./results/
+scp "YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/py/job-001/slurm-123456_*.out" ./results/123456/
+ls ./results/123456
+```
+
+</details>
+
+<details>
+<summary>Linux</summary>
+
+```bash
+cd "/home/YOUR_NAME/path/to/minimal-hpc-r/py/job-001"
+mkdir -p results
+scp -r YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/py/job-001/results/123456 ./results/
+scp "YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/py/job-001/slurm-123456_*.out" ./results/123456/
+ls ./results/123456
+```
+
+</details>
+
+<details>
+<summary>Windows</summary>
+
+```powershell
+cd "C:/path/to/minimal-hpc-r/py/job-001"
+New-Item -ItemType Directory -Force results
+scp -r YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/py/job-001/results/123456 ./results/
+scp "YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/py/job-001/slurm-123456_*.out" ./results/123456/
+Get-ChildItem ./results/123456
+```
+
+</details>
+
+The local `results/123456` folder now holds results and matching logs. Repeated downloads replace matching local files, so keep edited data separately. Results and logs are ignored by Git: back them up with the code version used for the run.
 
 In your **local notebook**, working in `py/job-001`, replace `123456` and read a result:
 

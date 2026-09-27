@@ -5,13 +5,10 @@ You need an HPC project account and its cluster username. See [GWDG account setu
 - [Download the examples](#1-download-the-examples)
 - [Connect to the cluster](#2-connect-to-the-cluster)
 - [Choose your language](#3-choose-your-language)
-- Transfer reference: [upload](#upload-code-and-data) · [download](#download-results)
 
 ## 1. Download the examples
 
 Download [this repository](https://github.com/jobrachem/hpc-minimal) with **Code → Download ZIP** and extract it. Rename the folder to `minimal-hpc-r`; it should contain `README.md`, `guides`, `r`, and `py`.
-
-Replace `C:\path\to\minimal-hpc-r` in the commands below with its location on your computer. The separate cluster copy will live at `~/minimal-hpc-r`.
 
 ## 2. Connect to the cluster
 
@@ -64,84 +61,3 @@ Keep the SSH terminal open and open a second **local PowerShell** window. Follow
 
 - [R: local test → cluster setup → jobs and results](../r/README.md)
 - [Python: local test → cluster setup → jobs and results](../py/README.md)
-
-The sections below are transfer references. Your language walkthrough links to them when needed.
-
-## Upload code and data
-
-Save your local edits first. **SSH terminal:** create the destination for your language:
-
-```bash
-# R:
-mkdir -p ~/minimal-hpc-r/r/job-001
-# Python:
-mkdir -p ~/minimal-hpc-r/py/job-001
-```
-
-**Local terminal:** enter the repository folder:
-
-```powershell
-cd "C:\path\to\minimal-hpc-r"
-```
-
-Replace `YOUR_HPC_USERNAME` and copy the files for your language.
-
-**R:**
-
-```powershell
-scp .\r\job-001\run.R .\r\job-001\submit.sh YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/r/job-001/
-```
-
-**Python:**
-
-```powershell
-scp .\py\job-001\run.ipynb .\py\job-001\submit.sh .\py\job-001\pyproject.toml .\py\job-001\uv.lock YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/py/job-001/
-```
-
-Wait for the command to finish and check for transfer errors. Recreate Python's `.venv` on the cluster; do not upload it. Save `.sh` files with **LF / Unix line endings**.
-
-### Include your own data
-
-Put small input files in a `data` folder inside the job folder. Copy it with `scp -r` (replace `r` with `py` for Python):
-
-```powershell
-scp -r .\r\job-001\data YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/r/job-001/
-```
-
-For large datasets, choose storage using the [GWDG storage guide](https://docs.hpc.gwdg.de/how_to_use/storage_systems/index.html). Run `show-quota` in SSH to check your limits.
-
-`scp` replaces matching destination files. Repeat the upload after editing, but leave files used by queued or running jobs unchanged until they finish.
-
-Continue in your language walkthrough: [R](../r/README.md#load-r) · [Python](../py/README.md#create-the-cluster-environment).
-
-## Download results
-
-Use the completed submission's job ID in place of `123456`. In your **local terminal**, enter the repository folder:
-
-```powershell
-cd "C:\path\to\minimal-hpc-r"
-```
-
-Run the block for your language. Wait for the result download to succeed before copying its logs.
-
-**R:**
-
-```powershell
-New-Item -ItemType Directory -Force .\r\job-001\results
-scp -r YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/r/job-001/results/123456 .\r\job-001\results\
-scp "YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/r/job-001/slurm-123456_*.out" .\r\job-001\results\123456\
-Get-ChildItem .\r\job-001\results\123456
-```
-
-**Python:**
-
-```powershell
-New-Item -ItemType Directory -Force .\py\job-001\results
-scp -r YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/py/job-001/results/123456 .\py\job-001\results\
-scp "YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/py/job-001/slurm-123456_*.out" .\py\job-001\results\123456\
-Get-ChildItem .\py\job-001\results\123456
-```
-
-The local `results/123456` folder now holds results and matching logs. Repeated downloads replace matching local files, so keep edited data separately. Results and logs are ignored by Git: back them up with the code version used for the run.
-
-Continue with [R results](../r/README.md#download-and-open-results) or [Python results](../py/README.md#download-and-open-results).

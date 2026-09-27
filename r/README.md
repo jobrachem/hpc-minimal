@@ -59,7 +59,53 @@ Expected: 1,000 rows and `r/job-001/results/local-test/task-001.rds` in the repo
 
 ### Upload code and data
 
-Save your edits and use the **R** upload commands for [macOS](../guides/macos.md#upload-code-and-data), [Linux](../guides/linux.md#upload-code-and-data), or [Windows](../guides/windows.md#upload-code-and-data). That section also shows how to include your own input data. Then continue here.
+Save your edits, then create the destination in the **SSH terminal**:
+
+```bash
+mkdir -p ~/minimal-hpc-r/r/job-001
+```
+
+In your **local terminal**, use your OS block below. Replace the example path and `YOUR_HPC_USERNAME`; if you connected to a different login host, use that host here too. Save `submit.sh` with **LF / Unix line endings**.
+
+<details>
+<summary>macOS</summary>
+
+```bash
+cd "/Users/YOUR_NAME/path/to/minimal-hpc-r/r/job-001"
+scp run.R submit.sh YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/r/job-001/
+```
+
+</details>
+
+<details>
+<summary>Linux</summary>
+
+```bash
+cd "/home/YOUR_NAME/path/to/minimal-hpc-r/r/job-001"
+scp run.R submit.sh YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/r/job-001/
+```
+
+</details>
+
+<details>
+<summary>Windows</summary>
+
+```powershell
+cd "C:/path/to/minimal-hpc-r/r/job-001"
+scp run.R submit.sh YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/r/job-001/
+```
+
+</details>
+
+Wait for the transfer to finish without errors. `scp` replaces matching destination files; leave files used by queued or running jobs unchanged until they finish.
+
+**For your own input data:** put small files in `r/job-001/data`. From the same **local terminal**, still in the job folder, copy it with:
+
+```sh
+scp -r data YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/r/job-001/
+```
+
+This command works on all three systems. For large datasets, choose storage using the [GWDG storage guide](https://docs.hpc.gwdg.de/how_to_use/storage_systems/index.html). Run `show-quota` in SSH to check your limits.
 
 ### Load R
 
@@ -102,7 +148,7 @@ Open [`submit.sh`](job-001/submit.sh) locally. It requests one CPU, 1 GiB of mem
 
 The script uses `scc-cpu`; other accounts/islands may need a different [partition](https://docs.hpc.gwdg.de/how_to_use/compute_partitions/cpu_partitions/index.html). For **email notifications**, replace `YOUR_EMAIL@example.com` and uncomment the two mail directives. They notify you when the array starts, ends, or fails.
 
-Upload any edits using the same [macOS](../guides/macos.md#upload-code-and-data), [Linux](../guides/linux.md#upload-code-and-data), or [Windows](../guides/windows.md#upload-code-and-data) commands before submitting.
+Upload any edits using the [upload commands above](#upload-code-and-data) before submitting.
 
 ### Submit one task first
 
@@ -141,7 +187,48 @@ Record the **new job ID** and repeat the checks above with it. All five tasks sh
 
 ### Download and open results
 
-Use your **full array's job ID** and the **R** download commands for [macOS](../guides/macos.md#download-results), [Linux](../guides/linux.md#download-results), or [Windows](../guides/windows.md#download-results). Keep the results, logs, and code version together.
+In your **local terminal**, use your OS block below. Replace the example path and `YOUR_HPC_USERNAME`, and use your **full array's job ID** in place of `123456`. Use the same login host as for uploading. Wait for the result download to succeed before copying its logs.
+
+<details>
+<summary>macOS</summary>
+
+```bash
+cd "/Users/YOUR_NAME/path/to/minimal-hpc-r/r/job-001"
+mkdir -p results
+scp -r YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/r/job-001/results/123456 ./results/
+scp "YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/r/job-001/slurm-123456_*.out" ./results/123456/
+ls ./results/123456
+```
+
+</details>
+
+<details>
+<summary>Linux</summary>
+
+```bash
+cd "/home/YOUR_NAME/path/to/minimal-hpc-r/r/job-001"
+mkdir -p results
+scp -r YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/r/job-001/results/123456 ./results/
+scp "YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/r/job-001/slurm-123456_*.out" ./results/123456/
+ls ./results/123456
+```
+
+</details>
+
+<details>
+<summary>Windows</summary>
+
+```powershell
+cd "C:/path/to/minimal-hpc-r/r/job-001"
+New-Item -ItemType Directory -Force results
+scp -r YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/r/job-001/results/123456 ./results/
+scp "YOUR_HPC_USERNAME@glogin-p3.hpc.gwdg.de:minimal-hpc-r/r/job-001/slurm-123456_*.out" ./results/123456/
+Get-ChildItem ./results/123456
+```
+
+</details>
+
+The local `results/123456` folder now holds results and matching logs. Repeated downloads replace matching local files, so keep edited data separately. Results and logs are ignored by Git: back them up with the code version used for the run.
 
 In your **local R console**, still working in the `r` folder, replace `123456` and read a result:
 
