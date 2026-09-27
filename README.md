@@ -24,6 +24,7 @@ py/job-001/            Notebook, submission script, and uv environment files
 - [6. Submit a test job](#6-submit-a-test-job)
 - [7. Check the test job and run the full array](#7-check-the-test-job-and-run-the-full-array)
 - [8. Download the results](#8-download-the-results)
+- [Optional: Sync code with Git](git-sync.md)
 - [Related documentation](#related-documentation)
 
 ## 1. Download the repository
@@ -126,7 +127,7 @@ Save your code after the local run succeeds. Both guides return you to **step 4*
 
 Use `scp` to copy files over SSH, using the same login details as before. Use the **local PowerShell** window you opened in step 3 for uploads; keep your **SSH terminal** open too. The local window can access the files on your Windows computer.
 
-> **Note:** This guide shows an easy way to get started, but manually copying files is error-prone and can quickly become cumbersome. I **highly recommend using a GitHub repository** to version your experiment code and synchronize it between your local computer and the server: commit and push your changes locally, then pull them on the server.
+> **Note:** This guide shows an easy way to get started, but manually copying files is error-prone and can quickly become cumbersome. I **highly recommend using a GitHub repository** to version your experiment code and synchronize it between your local computer and the server. Follow [Sync code with Git](git-sync.md) to replace code uploads with a commit, push, and pull workflow. Continue using `scp` for data and results.
 
 Choose the R example in `r/job-001` or the Python example in `py/job-001` below. Both use the same source-and-destination pattern. Copy code and input files; recreate Python environments on the server instead of uploading `.venv`.
 
