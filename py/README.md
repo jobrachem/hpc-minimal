@@ -8,9 +8,9 @@ The example uses **uv** to manage Python and its packages. Keep [`pyproject.toml
 
 - [Prepare your local Python environment](#prepare-your-local-python-environment)
 - [Try the notebook on your computer](#try-the-notebook-on-your-computer)
+  - [Keep the whole repository open](#keep-the-whole-repository-open)
   - [In Positron](#in-positron)
   - [In VS Code](#in-vs-code)
-  - [Keep the whole repository open](#keep-the-whole-repository-open)
   - [Check the notebook's Python](#check-the-notebooks-python)
   - [In JupyterLab](#in-jupyterlab)
   - [Understand the example](#understand-the-example)
@@ -100,7 +100,7 @@ The dependencies include NumPy and pandas for the simulation, JupyterLab for int
 
 ## Try the notebook on your computer
 
-Choose [Positron](#in-positron), [VS Code](#in-vs-code), or [JupyterLab](#in-jupyterlab) below; you only need one. A notebook's **kernel** is the Python process that executes its cells. Select the environment created by `uv sync --locked` so the notebook has the project's packages.
+Keep `minimal-hpc-r` open as your workspace so you can browse all jobs together. Choose [Positron](#in-positron), [VS Code](#in-vs-code), or [JupyterLab](#in-jupyterlab) below; you only need one. A notebook's **kernel** is the Python process that executes its cells. Select the environment created by `uv sync --locked` so the notebook has the project's packages.
 
 Expand your operating system for the interpreter path and Command Palette shortcut used in the editor instructions below:
 
@@ -128,37 +128,13 @@ Expand your operating system for the interpreter path and Command Palette shortc
 
 </details>
 
-### In Positron
-
-After `uv sync --locked` finishes, open the job folder as your project:
-
-1. In Positron, choose **File → Open Folder…** and select `minimal-hpc-r/py/job-001`. The Explorer should show `run.ipynb`, `pyproject.toml`, and `uv.lock` directly inside the open folder.
-2. Open `run.ipynb` and click the kernel name (or **Select Kernel**) at the top of the notebook. If offered, choose **Select Environment…** to see the available environments.
-3. Select **Python 3.13… (uv: minimal-hpc-python)**. Check that its path matches the interpreter in your platform's details above, inside this job's `.venv`. The patch version may vary.
-
-**Open the `job-001` folder itself.** Opening the entire `minimal-hpc-r` repository, the `py` folder, or only the notebook can leave the environment out of the picker. Positron discovers `.venv` at the root of the open project; see [Python environment discovery](https://positron.posit.co/python-installations.html#discovery-locations). To keep the whole repository open instead, use the [workspace settings below](#keep-the-whole-repository-open).
-
-If the environment is still missing, confirm that `uv sync --locked` completed in `py/job-001`, then open the Command Palette (using the shortcut in your platform’s details above) and run **Interpreter: Discover All Interpreters**. Reopen the notebook's kernel picker.
-
-Continue with [Check the notebook's Python](#check-the-notebooks-python).
-
-### In VS Code
-
-Install Microsoft's **Python** and **Jupyter** extensions in VS Code. After `uv sync --locked` finishes:
-
-1. Choose **File → Open Folder…** and select `minimal-hpc-r/py/job-001`. The Explorer should show `run.ipynb`, `pyproject.toml`, and `uv.lock` directly inside the open folder.
-2. Open `run.ipynb` and click **Select Kernel** (or the current kernel name) at the top right. Choose **Select Another Kernel…**, if shown, then **Python Environments**.
-3. Select the Python 3.13 environment whose path matches the interpreter in your platform's details above, inside this job's `.venv`. Check the path, since several environments may have the same name or Python version.
-
-The notebook's kernel selection is separate from **Python: Select Interpreter** for Python scripts. See [VS Code's kernel selection guide](https://code.visualstudio.com/docs/datascience/jupyter-kernel-management).
-
-If the environment is missing, confirm that `uv sync --locked` completed and that you opened the job folder. With Microsoft's **Python Environments** extension installed, run **Python Environments: Refresh All Environment Managers** from the Command Palette (using the shortcut in your platform’s details above), then reopen the notebook's kernel picker. To keep the whole repository open, use the [workspace settings below](#keep-the-whole-repository-open).
-
-Continue with [Check the notebook's Python](#check-the-notebooks-python).
-
 ### Keep the whole repository open
 
-Use this option if you want to browse several jobs in one editor window. Open `minimal-hpc-r` with **File → Open Folder…**, then run **Preferences: Open Workspace Settings (JSON)** from the Command Palette. This opens or creates `minimal-hpc-r/.vscode/settings.json`.
+In Positron or VS Code, choose **File → Open Folder…** and select `minimal-hpc-r`. The Explorer should show `README.md`, `guides`, `r`, and `py` at the top level. Keep this folder open throughout the walkthrough. JupyterLab users can go directly to [In JupyterLab](#in-jupyterlab), which also opens the whole repository.
+
+The editor's open folder and the terminal's working directory are separate. Run local `uv` and Papermill commands from `py/job-001`, where that job's `pyproject.toml` lives. If you open a new terminal at the repository root, run `cd py/job-001` first.
+
+For Positron or VS Code, run **Preferences: Open Workspace Settings (JSON)** from the Command Palette. This opens or creates `minimal-hpc-r/.vscode/settings.json`.
 
 Add the setting for your editor inside the existing outer `{ ... }`, separating settings with commas. Preserve any other settings already there. The examples below are complete files if yours is empty. Settings help the editor find environments; run `uv sync --locked` inside each job folder to create them first.
 
@@ -207,9 +183,9 @@ Use forward slashes in these JSON paths. After creating another job’s environm
 
 Positron's setting accepts absolute paths, not wildcard patterns or `${workspaceFolder}`. A single `py/job-*/.venv` entry therefore does not work, and pointing it at the parent `py` folder is not a recursive search for all nested environments. See [Posit's interpreter settings reference](https://docs.posit.co/ide/server-pro/admin/positron_sessions/interpreter_settings.html).
 
-Save the settings, run **Interpreter: Discover All Interpreters**, and reopen the notebook's kernel picker. If the change has not taken effect, run **Developer: Reload Window**, then select the job's environment as described above.
+Save the settings, then follow [In Positron](#in-positron) to discover the environment and select the notebook's kernel.
 
-**VS Code: discover all job environments with a pattern.** With Microsoft's **Python Environments** extension installed, use:
+**VS Code: discover all job environments with a pattern.** Install Microsoft's **Python**, **Jupyter**, and **Python Environments** extensions, then use:
 
 ```json
 {
@@ -220,11 +196,35 @@ Save the settings, run **Interpreter: Discover All Interpreters**, and reopen th
 }
 ```
 
-The second pattern matches every `job-*` folder directly inside `py`; it is relative to the open repository folder. The first also allows a root-level `.venv`. Save, run **Python Environments: Refresh All Environment Managers**, then select the notebook's kernel. Newly created job environments match without editing this list. See [VS Code's search path settings](https://code.visualstudio.com/docs/python/environments#_configure-search-paths).
-
-**VS Code notebook caveat:** the notebook picker uses a different discovery API from the environment manager, so this setting alone may not make every environment appear there. If a job's environment remains missing from the notebook picker, open that job folder in its own VS Code window and select its kernel there. See [Microsoft's documented notebook limitation](https://code.visualstudio.com/docs/python/environments#_jupyter-notebooks).
+The second pattern matches every `job-*` folder directly inside `py`; it is relative to the open repository folder. The first also allows a root-level `.venv`. Save, then follow [In VS Code](#in-vs-code) to refresh environments and select the notebook's kernel. Newly created job environments match without editing this list. See [VS Code's search path settings](https://code.visualstudio.com/docs/python/environments#_configure-search-paths).
 
 These two settings are editor-specific; there is no single wildcard setting that configures both editors. This repository ignores `.vscode/settings.json` because the Positron paths are specific to each computer. Keep these local editor settings out of the cluster upload.
+
+### In Positron
+
+With `minimal-hpc-r` open and the Positron workspace setting above saved:
+
+1. Run **Interpreter: Discover All Interpreters** from the Command Palette.
+2. Open `py/job-001/run.ipynb` from the Explorer and click the kernel name (or **Select Kernel**) at the top of the notebook. If offered, choose **Select Environment…**.
+3. Select **Python 3.13… (uv: minimal-hpc-python)**. Check that its path matches the interpreter in your platform's details above, inside this job's `.venv`. The patch version may vary.
+
+If the environment is missing, confirm that `uv sync --locked` completed in `py/job-001` and that `python.interpreters.include` contains the absolute path to its `.venv`. Run **Interpreter: Discover All Interpreters** again. If the setting has not taken effect, run **Developer: Reload Window** and reopen the kernel picker.
+
+Continue with [Check the notebook's Python](#check-the-notebooks-python).
+
+### In VS Code
+
+With `minimal-hpc-r` open, the extensions installed, and the VS Code workspace setting above saved:
+
+1. Run **Python Environments: Refresh All Environment Managers** from the Command Palette.
+2. Open `py/job-001/run.ipynb` from the Explorer and click **Select Kernel** (or the current kernel name) at the top right. Choose **Select Another Kernel…**, if shown, then **Python Environments**.
+3. Select the Python 3.13 environment whose path matches the interpreter in your platform's details above, inside this job's `.venv`. Check the path, since several environments may have the same name or Python version.
+
+The notebook's kernel selection is separate from **Python: Select Interpreter** for Python scripts. See [VS Code's kernel selection guide](https://code.visualstudio.com/docs/datascience/jupyter-kernel-management).
+
+If the environment is missing, confirm that `uv sync --locked` completed in `py/job-001`, refresh environments, and reopen the kernel picker. The notebook picker uses a different discovery API from the environment manager, so the search-path setting alone may not make every environment appear there; see [Microsoft's documented notebook limitation](https://code.visualstudio.com/docs/python/environments#_jupyter-notebooks). If it remains missing, use [JupyterLab](#in-jupyterlab) below with the same repository and job environment.
+
+Continue with [Check the notebook's Python](#check-the-notebooks-python).
 
 ### Check the notebook's Python
 
@@ -239,13 +239,13 @@ The printed path should end with the interpreter path in your platform’s detai
 
 ### In JupyterLab
 
-From the same **local terminal** window, start JupyterLab:
+From the same **local terminal** window, still in `py/job-001`, start JupyterLab with the repository root as its file browser directory:
 
 ```sh
-uv run --locked jupyter lab
+uv run --locked jupyter lab --notebook-dir=../..
 ```
 
-Keep this terminal open. JupyterLab opens in your browser; if it does not, open the local URL printed in the terminal. Open `run.ipynb` and select **Python 3 (ipykernel)** if asked for a kernel. Starting Jupyter through uv makes the project's environment available; see [uv's Jupyter guide](https://docs.astral.sh/uv/guides/integration/jupyter/).
+`../..` points from `py/job-001` to `minimal-hpc-r`, so the file browser shows the whole repository; see [JupyterLab's directory option](https://jupyterlab.readthedocs.io/en/stable/getting_started/starting.html). Keep this terminal open. JupyterLab opens in your browser; if it does not, open the local URL printed in the terminal. Open `py/job-001/run.ipynb` and select **Python 3 (ipykernel)** if asked for a kernel. Starting Jupyter through uv makes the project's environment available; see [uv's Jupyter guide](https://docs.astral.sh/uv/guides/integration/jupyter/).
 
 ### Understand the example
 
