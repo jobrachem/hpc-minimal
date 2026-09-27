@@ -152,9 +152,11 @@ Expand your operating system for the interpreter path and Command Palette shortc
 
 The editor's open folder and the terminal's working directory are separate. Run local `uv` and Papermill commands from `py/job-001`, where that job's `pyproject.toml` lives. If you open a new terminal at the repository root, run `cd py/job-001` first.
 
-For Positron or VS Code, run **Preferences: Open Workspace Settings (JSON)** from the Command Palette. This opens or creates `minimal-hpc-r/.vscode/settings.json`.
+**VS Code:** install Microsoft's **Python**, **Jupyter**, and **Python Environments** extensions, then continue with [In VS Code](#in-vs-code). The default environment search includes `.venv` folders throughout the repository, so no custom search-path setting is needed for this layout. See [VS Code's search path settings](https://code.visualstudio.com/docs/python/environments#_configure-search-paths).
 
-Add the setting for your editor inside the existing outer `{ ... }`, separating settings with commas. Preserve any other settings already there. The examples below are complete files if yours is empty. Settings help the editor find environments; run `uv sync --locked` inside each job folder to create them first.
+**Positron:** run **Preferences: Open Workspace Settings (JSON)** from the Command Palette. This opens or creates `minimal-hpc-r/.vscode/settings.json`.
+
+Add the setting below inside the existing outer `{ ... }`, separating settings with commas. Preserve any other settings already there. The examples below are complete files if yours is empty. Settings help the editor find environments; run `uv sync --locked` inside each job folder to create them first.
 
 **Positron: list the environments explicitly.** Expand your operating system for an example, replacing the path with the actual location on your computer:
 
@@ -203,20 +205,7 @@ Positron's setting accepts absolute paths, not wildcard patterns or `${workspace
 
 Save the settings, then follow [In Positron](#in-positron) to discover the environment and select the notebook's kernel.
 
-**VS Code: discover all job environments with a pattern.** Install Microsoft's **Python**, **Jupyter**, and **Python Environments** extensions, then use:
-
-```json
-{
-    "python-envs.workspaceSearchPaths": [
-        "./.venv",
-        "./py/job-*/.venv"
-    ]
-}
-```
-
-The second pattern matches every `job-*` folder directly inside `py`; it is relative to the open repository folder. The first also allows a root-level `.venv`. Save, then follow [In VS Code](#in-vs-code) to refresh environments and select the notebook's kernel. Newly created job environments match without editing this list. See [VS Code's search path settings](https://code.visualstudio.com/docs/python/environments#_configure-search-paths).
-
-These two settings are editor-specific; there is no single wildcard setting that configures both editors. This repository ignores `.vscode/settings.json` because the Positron paths are specific to each computer. Keep these local editor settings out of the cluster upload.
+This setting is specific to Positron. This repository ignores `.vscode/settings.json` because the paths are specific to each computer. Keep these local editor settings out of the cluster upload.
 
 ### Run the example locally
 
@@ -236,7 +225,7 @@ Continue with [Check the notebook's Python](#check-the-notebooks-python).
 
 #### In VS Code
 
-With `minimal-hpc-r` open, the extensions installed, and the VS Code workspace setting above saved:
+With `minimal-hpc-r` open and the extensions installed:
 
 1. Run **Python Environments: Refresh All Environment Managers** from the Command Palette.
 2. Open `py/job-001/run.ipynb` from the Explorer and click **Select Kernel** (or the current kernel name) at the top right. Choose **Select Another Kernel…**, if shown, then **Python Environments**.
@@ -244,7 +233,27 @@ With `minimal-hpc-r` open, the extensions installed, and the VS Code workspace s
 
 The notebook's kernel selection is separate from **Python: Select Interpreter** for Python scripts. See [VS Code's kernel selection guide](https://code.visualstudio.com/docs/datascience/jupyter-kernel-management).
 
-If the environment is missing, confirm that `uv sync --locked` completed in `py/job-001`, refresh environments, and reopen the kernel picker. The notebook picker uses a different discovery API from the environment manager, so the search-path setting alone may not make every environment appear there; see [Microsoft's documented notebook limitation](https://code.visualstudio.com/docs/python/environments#_jupyter-notebooks). If it remains missing, use [JupyterLab](#in-jupyterlab) below with the same repository and job environment.
+If the environment is missing, confirm that `uv sync --locked` completed in `py/job-001`, refresh environments, and reopen the kernel picker.
+
+<details>
+<summary>Troubleshoot environment discovery</summary>
+
+If the environment is also missing from the **Environment Managers** view, an existing custom search-path setting may exclude it. Run **Preferences: Open Workspace Settings (JSON)** and inspect `python-envs.workspaceSearchPaths`. Remove an unnecessary override to restore the default recursive search, or add `./py/job-*/.venv` to the existing list while preserving other paths. For example:
+
+```json
+{
+    "python-envs.workspaceSearchPaths": [
+        "./.venv",
+        "./py/job-*/.venv"
+    ]
+}
+```
+
+These paths are relative to the open repository root. Save and run **Python Environments: Refresh All Environment Managers** again.
+
+The notebook picker uses a different discovery API from the environment manager, so changing search paths does not guarantee that the notebook kernel will appear; see [Microsoft's documented notebook limitation](https://code.visualstudio.com/docs/python/environments#_jupyter-notebooks). If the kernel remains missing, use [JupyterLab](#in-jupyterlab) below with the same repository and job environment.
+
+</details>
 
 Continue with [Check the notebook's Python](#check-the-notebooks-python).
 
