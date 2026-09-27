@@ -6,25 +6,47 @@ The example uses **uv** to manage Python and its packages. Keep [`pyproject.toml
 
 ## Table of contents
 
-- [Prepare your local Python environment](#prepare-your-local-python-environment)
-- [Try the notebook on your computer](#try-the-notebook-on-your-computer)
-  - [Keep the whole repository open](#keep-the-whole-repository-open)
-  - [In Positron](#in-positron)
-  - [In VS Code](#in-vs-code)
-  - [Check the notebook's Python](#check-the-notebooks-python)
-  - [In JupyterLab](#in-jupyterlab)
+- [Prepare and test locally](#prepare-and-test-locally)
   - [Understand the example](#understand-the-example)
-  - [Try parameter passing locally](#try-parameter-passing-locally)
+  - [Prepare your local Python environment](#prepare-your-local-python-environment)
+  - [Keep the whole repository open](#keep-the-whole-repository-open)
+  - [Run the example locally](#run-the-example-locally)
+    - [In Positron](#in-positron)
+    - [In VS Code](#in-vs-code)
+    - [Check the notebook's Python](#check-the-notebooks-python)
+    - [In JupyterLab](#in-jupyterlab)
+    - [Run all cells](#run-all-cells)
+    - [Try parameter passing locally](#try-parameter-passing-locally)
   - [Add packages when you need them](#add-packages-when-you-need-them)
-- [Prepare the environment on SCC](#prepare-the-environment-on-scc)
-- [Submit the notebook as a job array](#submit-the-notebook-as-a-job-array)
+- [Prepare the cluster environment](#prepare-the-cluster-environment)
+- [Submit a job array](#submit-a-job-array)
+  - [Check the submission script](#check-the-submission-script)
   - [Optionally save executed notebooks](#optionally-save-executed-notebooks)
   - [Submit one task first](#submit-one-task-first)
   - [Submit the full array](#submit-the-full-array)
 
-## Prepare your local Python environment
+## Prepare and test locally
 
-This begins the Python part of **step 3** in the main walkthrough. Continue through the local notebook and parameter-passing checks before uploading.
+This is the Python part of **step 3** in the main walkthrough. Continue through the local notebook and parameter-passing checks before uploading.
+
+### Understand the example
+
+[`run.ipynb`](job-001/run.ipynb) simulates means of samples from a normal distribution with mean 0 and standard deviation 1. Tasks 1–5 use sample sizes 10, 30, 100, 300, and 1,000. Each task performs 1,000 repetitions, matching the design of the R example.
+
+The first code cell is tagged `parameters` and contains two editable defaults:
+
+```python
+task_id = 1
+output_dir = "results/local-test"
+```
+
+Papermill inserts an `injected-parameters` cell immediately after the tagged cell when running a batch job. Keep derived values, imports, and simulation code in later cells so they use the supplied values. The source notebook already has the tag; keep it when editing. See [parameterizing a notebook](https://papermill.readthedocs.io/en/latest/usage-parameterize.html).
+
+The `results` data frame stays available in the notebook. The final cell saves it to `results/local-test/task-001.csv`. Change the task number to try a different sample size. Choose a fresh output folder when repeating a task: the notebook refuses to replace an existing CSV, including if you rerun just the save cell.
+
+Each task uses its number as a random seed. Repeating it with the same Python environment and settings produces the same results. R uses a different random-number generator, so the two examples' numerical results will differ.
+
+### Prepare your local Python environment
 
 In your **local terminal** (Terminal on macOS/Linux, PowerShell on Windows), check whether uv is installed:
 
@@ -98,9 +120,9 @@ uv run --locked python --version
 
 The dependencies include NumPy and pandas for the simulation, JupyterLab for interactive work, and Papermill for passing parameters and running notebooks as batch jobs.
 
-## Try the notebook on your computer
+### Keep the whole repository open
 
-Keep `minimal-hpc-r` open as your workspace so you can browse all jobs together. Choose [Positron](#in-positron), [VS Code](#in-vs-code), or [JupyterLab](#in-jupyterlab) below; you only need one. A notebook's **kernel** is the Python process that executes its cells. Select the environment created by `uv sync --locked` so the notebook has the project's packages.
+In Positron or VS Code, choose **File → Open Folder…** and select `minimal-hpc-r`. The Explorer should show `README.md`, `guides`, `r`, and `py` at the top level. Keep this folder open throughout the walkthrough. JupyterLab users can go directly to [In JupyterLab](#in-jupyterlab), which also opens the whole repository.
 
 Expand your operating system for the interpreter path and Command Palette shortcut used in the editor instructions below:
 
@@ -127,10 +149,6 @@ Expand your operating system for the interpreter path and Command Palette shortc
 - **Command Palette:** **Ctrl+Shift+P**.
 
 </details>
-
-### Keep the whole repository open
-
-In Positron or VS Code, choose **File → Open Folder…** and select `minimal-hpc-r`. The Explorer should show `README.md`, `guides`, `r`, and `py` at the top level. Keep this folder open throughout the walkthrough. JupyterLab users can go directly to [In JupyterLab](#in-jupyterlab), which also opens the whole repository.
 
 The editor's open folder and the terminal's working directory are separate. Run local `uv` and Papermill commands from `py/job-001`, where that job's `pyproject.toml` lives. If you open a new terminal at the repository root, run `cd py/job-001` first.
 
@@ -200,7 +218,11 @@ The second pattern matches every `job-*` folder directly inside `py`; it is rela
 
 These two settings are editor-specific; there is no single wildcard setting that configures both editors. This repository ignores `.vscode/settings.json` because the Positron paths are specific to each computer. Keep these local editor settings out of the cluster upload.
 
-### In Positron
+### Run the example locally
+
+Keep `minimal-hpc-r` open as your workspace so you can browse all jobs together. Choose [Positron](#in-positron), [VS Code](#in-vs-code), or [JupyterLab](#in-jupyterlab) below; you only need one. A notebook's **kernel** is the Python process that executes its cells. Select the environment created by `uv sync --locked` so the notebook has the project's packages.
+
+#### In Positron
 
 With `minimal-hpc-r` open and the Positron workspace setting above saved:
 
@@ -212,7 +234,7 @@ If the environment is missing, confirm that `uv sync --locked` completed in `py/
 
 Continue with [Check the notebook's Python](#check-the-notebooks-python).
 
-### In VS Code
+#### In VS Code
 
 With `minimal-hpc-r` open, the extensions installed, and the VS Code workspace setting above saved:
 
@@ -226,7 +248,7 @@ If the environment is missing, confirm that `uv sync --locked` completed in `py/
 
 Continue with [Check the notebook's Python](#check-the-notebooks-python).
 
-### Check the notebook's Python
+#### Check the notebook's Python
 
 In either editor, run this in a temporary notebook cell:
 
@@ -235,9 +257,9 @@ import sys
 print(sys.executable)
 ```
 
-The printed path should end with the interpreter path in your platform’s details under [Try the notebook on your computer](#try-the-notebook-on-your-computer). Remove the temporary cell afterward, then continue with [Understand the example](#understand-the-example).
+The printed path should end with the interpreter path in your platform’s details under [Keep the whole repository open](#keep-the-whole-repository-open). Remove the temporary cell afterward, then continue with [Run all cells](#run-all-cells).
 
-### In JupyterLab
+#### In JupyterLab
 
 From the same **local terminal** window, still in `py/job-001`, start JupyterLab with the repository root as its file browser directory:
 
@@ -247,26 +269,13 @@ uv run --locked jupyter lab --notebook-dir=../..
 
 `../..` points from `py/job-001` to `minimal-hpc-r`, so the file browser shows the whole repository; see [JupyterLab's directory option](https://jupyterlab.readthedocs.io/en/stable/getting_started/starting.html). Keep this terminal open. JupyterLab opens in your browser; if it does not, open the local URL printed in the terminal. Open `py/job-001/run.ipynb` and select **Python 3 (ipykernel)** if asked for a kernel. Starting Jupyter through uv makes the project's environment available; see [uv's Jupyter guide](https://docs.astral.sh/uv/guides/integration/jupyter/).
 
-### Understand the example
+Continue with [Run all cells](#run-all-cells).
 
-[`run.ipynb`](job-001/run.ipynb) simulates means of samples from a normal distribution with mean 0 and standard deviation 1. Tasks 1–5 use sample sizes 10, 30, 100, 300, and 1,000. Each task performs 1,000 repetitions, matching the design of the R example.
-
-Run the cells from top to bottom. The first code cell is tagged `parameters` and contains two editable defaults:
-
-```python
-task_id = 1
-output_dir = "results/local-test"
-```
-
-Papermill inserts an `injected-parameters` cell immediately after the tagged cell when running a batch job. Keep derived values, imports, and simulation code in later cells so they use the supplied values. The source notebook already has the tag; keep it when editing. See [parameterizing a notebook](https://papermill.readthedocs.io/en/latest/usage-parameterize.html).
-
-The `results` data frame stays available in the notebook. The final cell saves it to `results/local-test/task-001.csv`. Change the task number to try a different sample size. Choose a fresh output folder when repeating a task: the notebook refuses to replace an existing CSV, including if you rerun just the save cell.
-
-Each task uses its number as a random seed. Repeating it with the same Python environment and settings produces the same results. R uses a different random-number generator, so the two examples' numerical results will differ.
+#### Run all cells
 
 Before uploading, choose a fresh output folder, restart the notebook's kernel, and run all cells from top to bottom. In Positron or VS Code, use the notebook's restart control, then **Run All**. In JupyterLab, use **Kernel → Restart Kernel and Run All Cells**. This catches dependencies on variables left over from earlier interactive work. Save the notebook afterward. If using JupyterLab, stop it with **Ctrl+C** in its terminal when finished, confirming shutdown if prompted.
 
-### Try parameter passing locally
+#### Try parameter passing locally
 
 In your **local terminal**, still in `py/job-001`, expand your operating system and run task 3 through Papermill:
 
@@ -318,7 +327,7 @@ Upload the updated dependency files before your next submission. The submission 
 
 **Next:** return to step 4: Upload your code and data ([macOS](../guides/macos.md#4-upload-your-code-and-data), [Linux](../guides/linux.md#4-upload-your-code-and-data), [Windows](../guides/windows.md#4-upload-your-code-and-data)), using the **Python** commands. Upload `run.ipynb`, `submit.sh`, `pyproject.toml`, and `uv.lock`; recreate `.venv` on the server. After checking the upload, step 5 sends you to the server setup below.
 
-## Prepare the environment on SCC
+## Prepare the cluster environment
 
 In the **connected SSH terminal**, run:
 
@@ -338,9 +347,24 @@ After syncing, the script uses `uv run --no-sync --offline` to execute the noteb
 
 **Next:** return to step 6: Submit a test job ([macOS](../guides/macos.md#6-submit-a-test-job), [Linux](../guides/linux.md#6-submit-a-test-job), [Windows](../guides/windows.md#6-submit-a-test-job)).
 
-## Submit the notebook as a job array
+## Submit a job array
 
-A job array runs the same notebook several times with different task numbers. Open [`submit.sh`](job-001/submit.sh) in your local editor. It requests one CPU and 1 GiB of memory per task, with a five-minute time limit. `--array=1-5%2` submits five tasks and allows at most two to run at once. These resources are for a small teaching example; adjust them for your own work.
+A job array runs the same notebook several times with different task numbers.
+
+### Check the submission script
+
+Open [`submit.sh`](job-001/submit.sh) in your **local editor**. Lines beginning with `#SBATCH` tell Slurm what to request:
+
+| Setting | Meaning |
+| --- | --- |
+| `--partition=scc-cpu` | Use the SCC CPU partition on Emmy Phase 3 |
+| `--nodes=1`, `--ntasks=1`, `--cpus-per-task=1` | Run one Python kernel with one CPU per array task |
+| `--mem=1G` | Request 1 GiB of memory per array task |
+| `--time=00:05:00` | Allow up to five minutes per array task |
+| `--array=1-5%2` | Run tasks 1–5, with at most two running at once |
+| `--output=slurm-%A_%a.out` | Give each task its own log, containing printed output and errors |
+
+These resources are for a small teaching example; adjust them for your own work. The partition must match your access; consult the [CPU partition table](https://docs.hpc.gwdg.de/how_to_use/compute_partitions/cpu_partitions/index.html) if you are not using SCC on Emmy Phase 3.
 
 The script calls **Papermill**, passing the task number and results folder as notebook parameters:
 

@@ -8,16 +8,17 @@ Local terminal commands use the repository root unless stated otherwise. The int
 
 - [Prepare and test locally](#prepare-and-test-locally)
   - [Understand the example](#understand-the-example)
-  - [Try the script in your local R console](#try-the-script-in-your-local-r-console)
-- [Test your R environment on the server](#test-your-r-environment-on-the-server)
+  - [Keep the whole repository open](#keep-the-whole-repository-open)
+  - [Run the example locally](#run-the-example-locally)
+- [Prepare the cluster environment](#prepare-the-cluster-environment)
   - [Choose and load an R version](#choose-and-load-an-r-version)
   - [Check that R works](#check-that-r-works)
   - [Reuse the same setup](#reuse-the-same-setup)
-- [Install R packages on the server](#install-r-packages-on-the-server)
-  - [Prepare a personal package library](#prepare-a-personal-package-library)
-  - [Install and check a package](#install-and-check-a-package)
-  - [Make packages available to your jobs](#make-packages-available-to-your-jobs)
-- [Submit an R job (as a job array)](#submit-an-r-job-as-a-job-array)
+  - [Install R packages on the server](#install-r-packages-on-the-server)
+    - [Prepare a personal package library](#prepare-a-personal-package-library)
+    - [Install and check a package](#install-and-check-a-package)
+    - [Make packages available to your jobs](#make-packages-available-to-your-jobs)
+- [Submit a job array](#submit-a-job-array)
   - [Check the submission script](#check-the-submission-script)
   - [Submit one task first](#submit-one-task-first)
   - [Submit the full array](#submit-the-full-array)
@@ -32,9 +33,11 @@ This is the R part of **step 3** in the main walkthrough. Use your usual R conso
 
 The script uses only base R, so you do not need to install additional packages on the cluster. Each task uses its number as a random seed, making repeat runs reproducible with the same R environment. This is deliberately a tiny teaching example; for a real study, give each task enough work to justify the scheduling overhead.
 
-### Try the script in your local R console
+### Keep the whole repository open
 
-In **R on your own computer**, set the working directory to the local `r` folder and source the script. Expand your operating system below and run its `setwd()` line, replacing the example path with your repository location:
+Keep `minimal-hpc-r` open as your editor's workspace so you can browse all jobs together. Open `r/job-001/run.R` from there.
+
+The editor's open folder and the R console's working directory are separate. This example expects the local R console to work in `minimal-hpc-r/r`; cluster jobs run from `minimal-hpc-r/r/job-001`. In **R on your own computer**, set the working directory to the local `r` folder. Expand your operating system below and run its `setwd()` line, replacing the example path with your repository location:
 
 <details>
 <summary>macOS</summary>
@@ -63,7 +66,9 @@ setwd("C:/path/to/minimal-hpc-r/r")
 
 </details>
 
-Then run:
+### Run the example locally
+
+In the same **local R console**, run:
 
 ```r
 source("job-001/run.R")
@@ -77,7 +82,7 @@ The script refuses to overwrite an existing result, so choose a fresh output fol
 
 **Next:** return to step 4: Upload your code and data ([macOS](../guides/macos.md#4-upload-your-code-and-data), [Linux](../guides/linux.md#4-upload-your-code-and-data), [Windows](../guides/windows.md#4-upload-your-code-and-data)). After checking the upload, step 5 sends you to the server setup below.
 
-## Test your R environment on the server
+## Prepare the cluster environment
 
 GWDG provides ready-to-use R installations through **modules**. Loading a module makes a particular software version available in your terminal. Your local R installation and its packages are separate from the cluster installation.
 
@@ -143,13 +148,13 @@ Load the same compiler and R modules each time you open a new SSH session. We wi
 
 R is now available on the server. This example needs no extra packages: return to step 6: Submit a test job ([macOS](../guides/macos.md#6-submit-a-test-job), [Linux](../guides/linux.md#6-submit-a-test-job), [Windows](../guides/windows.md#6-submit-a-test-job)). If your own code needs packages, complete the optional section below first.
 
-## Install R packages on the server
+### Install R packages on the server
 
 Install the packages your experiment needs on the cluster, even if they are already installed on your local computer. If your code uses only base R, continue with step 6: Submit a test job ([macOS](../guides/macos.md#6-submit-a-test-job), [Linux](../guides/linux.md#6-submit-a-test-job), [Windows](../guides/windows.md#6-submit-a-test-job)). The commands below use `digest` as an example; replace it with a package your experiment actually uses.
 
 Run all commands below **in the SSH terminal on the cluster**.
 
-### Prepare a personal package library
+#### Prepare a personal package library
 
 A **library** is a folder containing installed R packages. You can create one in your home directory without administrator permissions. First, load the same compiler and R modules you selected earlier:
 
@@ -172,7 +177,7 @@ Rscript -e '.libPaths()'
 
 If you selected different module versions, adjust the folder name to match. Keeping separate libraries avoids mixing packages built with different R or compiler versions.
 
-### Install and check a package
+#### Install and check a package
 
 In the **SSH terminal**, run:
 
@@ -192,7 +197,7 @@ Rscript -e 'library(digest); packageVersion("digest")'
 
 This should load the package and print its version without an error. If R cannot find it, check that you loaded the same modules and set `R_LIBS_USER` to the installation folder.
 
-### Make packages available to your jobs
+#### Make packages available to your jobs
 
 The installed files remain after you disconnect, but the `export` setting belongs to your current terminal session. Repeat it in each new session after loading the modules. We will include the same module commands and `export R_LIBS_USER=...` line in the submission script.
 
@@ -200,7 +205,7 @@ Install packages once before submitting jobs; inside your R script, load them wi
 
 **Next:** return to step 6: Submit a test job ([macOS](../guides/macos.md#6-submit-a-test-job), [Linux](../guides/linux.md#6-submit-a-test-job), [Windows](../guides/windows.md#6-submit-a-test-job)).
 
-## Submit an R job (as a job array)
+## Submit a job array
 
 A **job array** runs the same script several times, giving each run a different task number. This works well for simulations where each task can calculate its results independently. You submit the array once, and Slurm schedules its tasks on compute nodes. See [GWDG's job-array guide](https://docs.hpc.gwdg.de/how_to_use/slurm/job_array/index.html).
 

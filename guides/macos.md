@@ -112,7 +112,7 @@ Keep the SSH terminal open. Open a second **local terminal** window for commands
 Choose your language:
 
 - **R:** follow [Prepare and test locally](../r/README.md#prepare-and-test-locally) through the local console example.
-- **Python:** follow [Prepare your local Python environment](../py/README.md#prepare-your-local-python-environment) and [Try the notebook on your computer](../py/README.md#try-the-notebook-on-your-computer), including the local parameter-passing check. Choose one editor; adding packages is optional.
+- **Python:** follow [Prepare and test locally](../py/README.md#prepare-and-test-locally), including the local parameter-passing check. Choose one editor; adding packages is optional.
 
 Save your code after the local run succeeds. Both guides return you to **step 4** below.
 
@@ -204,8 +204,8 @@ Continue with **step 5** below once the files are present.
 
 Switch to the **SSH terminal** and follow the section for your language:
 
-- **R:** [Test your R environment on the server](../r/README.md#test-your-r-environment-on-the-server), then [Install R packages on the server](../r/README.md#install-r-packages-on-the-server) if your code needs extra packages. This example uses only base R, so package installation is optional.
-- **Python:** [Prepare the environment on SCC](../py/README.md#prepare-the-environment-on-scc).
+- **R:** [Prepare the cluster environment](../r/README.md#prepare-the-cluster-environment), then [Install R packages on the server](../r/README.md#install-r-packages-on-the-server) if your code needs extra packages. This example uses only base R, so package installation is optional.
+- **Python:** [Prepare the cluster environment](../py/README.md#prepare-the-cluster-environment).
 
 Wait for setup to finish successfully. Both guides return you to **step 6** below.
 
@@ -213,8 +213,8 @@ Wait for setup to finish successfully. Both guides return you to **step 6** belo
 
 Follow your language's submission section to review `submit.sh`, upload any edits, and submit **only task 1**:
 
-- **R:** [Submit an R job](../r/README.md#submit-an-r-job-as-a-job-array), through **Submit one task first**.
-- **Python:** [Submit the notebook as a job array](../py/README.md#submit-the-notebook-as-a-job-array), through **Submit one task first**.
+- **R:** [Submit a job array](../r/README.md#submit-a-job-array), through **Submit one task first**.
+- **Python:** [Submit a job array](../py/README.md#submit-a-job-array), through **Submit one task first**.
 
 For email updates, both `submit.sh` scripts include optional `--mail-user` and `--mail-type` settings. Enter your email address and uncomment those two directives before submitting to receive notifications when the array starts, ends, or fails.
 
