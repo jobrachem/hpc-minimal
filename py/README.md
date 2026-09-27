@@ -139,7 +139,7 @@ See [Posit's interpreter settings](https://docs.posit.co/ide/server-pro/admin/po
 
 #### VS Code
 
-Install Microsoft's **Python**, **Jupyter**, and **Python Environments** extensions. Open `py/job-001/run.ipynb`, choose **Select Kernel → Python Environments** (via **Select Another Kernel…** if shown), and select this job's `.venv`. Default discovery searches the repository; no custom search paths are needed.
+Install Microsoft's **Python**, **Jupyter**, and **Python Environments** extensions. Open `py/job-001/run.ipynb`, choose **Select Kernel → Python Environments** (via **Select Another Kernel…** if shown), and select this job's `.venv`. Start with the default settings; notebook kernel discovery may not find every environment shown by the environment manager.
 
 If it is missing, run **Python Environments: Refresh All Environment Managers** from the Command Palette. For further help, see [kernel selection](https://code.visualstudio.com/docs/datascience/jupyter-kernel-management); you can also use JupyterLab below with the same environment.
 
